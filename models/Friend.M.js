@@ -16,7 +16,7 @@ const FriendSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    domf: {
+    dateOfMakingFriend: {
         type: String,
         default: new Date()
     }

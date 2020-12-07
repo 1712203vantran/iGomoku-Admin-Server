@@ -6,6 +6,7 @@ const mongoose = require('mongoose');
     - Password: String/ md5 hash
     - Fullname: String
     - Permission: int (0-user, 1-admin)
+    - Xu: unsigned int (money in game)
 */ 
 
 const AccountSchema = mongoose.Schema({
@@ -24,6 +25,14 @@ const AccountSchema = mongoose.Schema({
     permission: {
         type: Int16Array,
         default: 0
+    },
+    xu: {
+        type: Int32Array,
+        default: 100
+    },
+    elo: {
+        type: Int32Array,
+        default: 600
     }
 });
 

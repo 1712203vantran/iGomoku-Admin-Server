@@ -16,7 +16,7 @@ const FriendInvitationSchema = mongoose.Schema({
         type: String,
         required: true
     },
-    dosr: {
+    dateOfSendingInvitation: {
         type: String,
         default: new Date()
     }
