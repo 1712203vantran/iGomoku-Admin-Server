@@ -23,7 +23,7 @@ const AuthRoute = require('./routers/Auth.R');
 const AdminRoute = require('./routers/Admin.R');
 const UserRoute = require('./routers/User.R');
 const BoardRoute = require('./routers/Board.R');
-const SearchRoute = require('./controllers/Search.R');
+const SearchRoute = require('./routers/Search.R');
 const ErrorRoute = require('./routers/Error.R');
 const iGomokuRoute = require('./routers/iGomoku.R');
 

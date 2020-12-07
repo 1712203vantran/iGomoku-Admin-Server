@@ -24,19 +24,19 @@ const AccountSchema = mongoose.Schema({
         required: true
     },
     permission: {
-        type: Int16Array,
+        type: Number,
         default: 0
     },
     xu: {
-        type: Int32Array,
+        type: Number,
         default: 100
     },
     elo: {
-        type: Int32Array,
+        type: Number,
         default: 600
     },
     accountStatus: {
-        type: Int8Array,
+        type: Number,
         default: 0
     }
 });
