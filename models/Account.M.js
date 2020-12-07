@@ -7,6 +7,7 @@ const mongoose = require('mongoose');
     - Fullname: String
     - Permission: int (0-user, 1-admin)
     - Xu: unsigned int (money in game)
+    - account status: unsigned int (0-normal, 1-blocked)
 */ 
 
 const AccountSchema = mongoose.Schema({
@@ -33,6 +34,10 @@ const AccountSchema = mongoose.Schema({
     elo: {
         type: Int32Array,
         default: 600
+    },
+    accountStatus: {
+        type: Int8Array,
+        default: 0
     }
 });
 
