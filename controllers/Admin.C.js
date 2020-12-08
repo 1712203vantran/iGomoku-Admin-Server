@@ -7,7 +7,7 @@ const AccountConstant = require('../config/Account.Cfg');
 module.exports.getListUser = async function(req, res, next){
     // return list user
     try {
-        const listUser = await (await Account.find({"permission": AccountConstant.PERMISSION_USER})).exec();
+        const listUser = await Account.find({"permission": AccountConstant.PERMISSION_USER}).exec();
         res.status(StatusConstant.OK).send(listUser);
     }catch(error) {
         res.status(StatusConstant.ERROR).send({message: error});

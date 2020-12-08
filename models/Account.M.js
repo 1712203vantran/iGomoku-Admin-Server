@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Utils = require('../utils/Utils');
 
 // Account Scheme
 /*
@@ -8,6 +9,7 @@ const mongoose = require('mongoose');
     - Permission: int (0-user, 1-admin)
     - Xu: unsigned int (money in game)
     - account status: unsigned int (0-normal, 1-blocked)
+    - createdDate: date
 */ 
 
 const AccountSchema = mongoose.Schema({
@@ -26,6 +28,10 @@ const AccountSchema = mongoose.Schema({
     permission: {
         type: Number,
         default: 0
+    },
+    createdDate: {
+        type: Date,
+        default: new Date()
     },
     xu: {
         type: Number,

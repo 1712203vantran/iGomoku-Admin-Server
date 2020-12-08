@@ -2,5 +2,12 @@ const express = require('express');
 const UserController = require('../controllers/User.C');
 const router = express.Router();
 
+router.get('/list-friend', UserController.getListFriend);
+
+router.post('/send-friend-invitation', UserController.sendMakingFriendRequest);
+
+router.post('/on-processing-friend-invitation', UserController.processingFriendInvitation);
+
+router.delete('/unfriend', UserController.unFriend);
 
 module.exports = router;

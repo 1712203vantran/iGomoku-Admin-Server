@@ -11,7 +11,8 @@ StatusResponseConfig.ACCOUNT_EXISTED = 1000;
 StatusResponseConfig.ACCOUNT_NOT_EXISTED = 1001;
 StatusResponseConfig.WRONG_PASSWORD = 1002;
 StatusResponseConfig.WRONG_REQUEST = 1003;
-
+StatusResponseConfig.WRONG_DATA = 1004;
+StatusResponseConfig.DATA_EXISTED = 1005;
 // friend
 StatusResponseConfig.FRIENDSHIP_EXISTED = 1100;
 

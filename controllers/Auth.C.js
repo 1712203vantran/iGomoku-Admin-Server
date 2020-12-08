@@ -16,7 +16,7 @@ module.exports.signIn = async function(req, res, next)
     const permission = parseInt(req.body.permission);
 
     try {
-        const account = await (await Account.findOne({ "username": username, "password": password, "permission": permission})).exec();
+        const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
         if(!account){
             res.status(StatusResponseConfig.ERROR).send({message: "Account is not exist!", code: StatusResponseConfig.ACCOUNT_NOT_EXISTED});
         }else{
