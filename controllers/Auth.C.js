@@ -1,4 +1,6 @@
 const Account = require('../models/Account.M');
+const jwtOptions = { secretOrKey: "nhoxtheanh" };
+const jwt = require("jsonwebtoken");
 
 // config
 const StatusResponseConfig = require('../config/StatusResponseConfig');
@@ -19,10 +21,119 @@ module.exports.signIn = async function(req, res, next)
         const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
         if(!account){
             res.status(StatusResponseConfig.ERROR).send({message: "Account is not exist!", code: StatusResponseConfig.ACCOUNT_NOT_EXISTED});
-        }else{
-            res.status(StatusResponseConfig.OK).send(account);
+        }else{// Login successfully
+            var payload = { userID: account._id };
+            var token = jwt.sign(payload, jwtOptions.secretOrKey);
+            res.status(StatusResponseConfig.OK).json({
+                token: token,
+                account: account
+              });
         }
     }catch(error) {
+        res.status(StatusResponseConfig.ERROR).send({message: error});
+    }
+};
+
+module.exports.signInGoogle = async function(req, res, next)
+{
+    const username = req.body.username;
+    const fullname = req.body.fullname;
+    //const token = req.body.token;
+    const password = "google";
+    const permission = parseInt(req.body.permission);
+
+    //TODO: xác thực token
+    
+    // check account is existed ?
+    try{
+        const f_account = await Account.findOne({'username': username }).exec();
+        if(f_account){  // account existed, check password
+            const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
+            if(!account){
+                res.status(StatusResponseConfig.ERROR).send({message: "Wrong login information!", code: StatusResponseConfig.ACCOUNT_NOT_EXISTED});
+            }else{// Login successfully
+                var payload = { userID: account._id };
+                var token = jwt.sign(payload, jwtOptions.secretOrKey);
+                res.status(StatusResponseConfig.OK).json({
+                    token: token,
+                    account: account
+                });
+            }
+            return;
+        }
+    } catch(error){
+        res.status(StatusResponseConfig.ERROR).send({message: error});
+        return;
+    }
+
+    // create new account
+    try{
+        const newAccount = new Account({
+            username: username,
+            password: password,
+            fullname: fullname,
+            permission: permission
+        });
+        const savedAccount = await newAccount.save();
+        var payload = { userID: savedAccount._id };
+        var token = jwt.sign(payload, jwtOptions.secretOrKey);
+        res.status(StatusResponseConfig.OK).json({
+            token: token,
+            savedAccount: savedAccount
+        });
+    } catch(error){
+        res.status(StatusResponseConfig.ERROR).send({message: error});
+    }
+};
+
+module.exports.signInFacebook = async function(req, res, next)
+{
+    const username = req.body.username;
+    const fullname = req.body.fullname;
+    //const token = req.body.token;
+    const password = "facebook";
+    const permission = parseInt(req.body.permission);
+
+    //TODO: xác thực token
+    
+    // check account is existed ?
+    try{
+        const f_account = await Account.findOne({'username': username }).exec();
+        if(f_account){  // account existed, check password
+            const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
+            if(!account){
+                res.status(StatusResponseConfig.ERROR).send({message: "Wrong login information!", code: StatusResponseConfig.ACCOUNT_NOT_EXISTED});
+            }else{// Login successfully
+                var payload = { userID: account._id };
+                var token = jwt.sign(payload, jwtOptions.secretOrKey);
+                res.status(StatusResponseConfig.OK).json({
+                    token: token,
+                    account: account
+                });
+            }
+            return;
+        }
+    } catch(error){
+        res.status(StatusResponseConfig.ERROR).send({message: error});
+        return;
+    }
+
+    // create new account
+    try{
+        const newAccount = new Account({
+            username: username,
+            password: password,
+            fullname: fullname,
+            permission: permission
+        });
+        const savedAccount = await newAccount.save();
+        var payload = { userID: savedAccount._id };
+        var token = jwt.sign(payload, jwtOptions.secretOrKey);
+        res.status(StatusResponseConfig.OK).json({
+            token: token,
+            savedAccount: savedAccount
+        });
+    } catch(error){
         res.status(StatusResponseConfig.ERROR).send({message: error});
     }
 };

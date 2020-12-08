@@ -4,6 +4,29 @@
 - password: string
 - permission: number (0-admin, 1-user)
 * url: /auth/signin
+** Bổ sung việc xác thực bằng jwt => gửi token cho Client sau khi xác thực đăng nhập thành công
+
+*** Work flow khi login facebook/google:
++ User login vào fb/gg trên client
++ client gửi thông tin sang BE, gồm: facebookID/googleID, fullname, token, permission
++ BE dùng token để kiểm tra xem thông tin đăng nhập có hợp lệ hay không (Chưa làm)
++ Nếu hợp lệ, sử dụng facebookID/googleID tương tự như username, kiểm tra username có tồn tại hay Chưa
+. Nếu chưa tồn tại => tạo mới account, username là facebookID/googleID và password là "facebook" hoặc "google" tương ứng
+. Nếu đã tồn tại => check password có khớp không
+
+1a. sign in google (POST)
+- username: string - id google lấy từ client sau khi đăng nhập
+- fullname: string
+- token: string - token dùng để xác thực đăng nhập
+- permission: number (0-admin, 1-user)
+* url: /auth/signinGoogle
+
+1b. sign in facebook (POST)
+- username: string - id facebook lấy từ client sau khi đăng nhập
+- fullname: string
+- token: string - token dùng để xác thực đăng nhập
+- permission: number (0-admin, 1-user)
+* url: /auth/signinFacebook
 
 2. sign up (POST) (gmail, dob bổ sung sau)
 - username: string
