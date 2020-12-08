@@ -1,0 +1,54 @@
+// AUTH
+1. sign in (POST)
+- username: string
+- password: string
+- permission: number (0-admin, 1-user)
+* url: /auth/signin
+
+2. sign up (POST) (gmail, dob bổ sung sau)
+- username: string
+- password: string
+- fullname: string
+- permission: number (0-admin, 1-user)
+* url: /auth/signup
+
+3. update profile (POST) (trước mắt là fullname)
+- userId: id của user
+- fullname: as new fullname
+
+4. change password (POST) (bắt user nhập lại mật khẩu cũ nữa)
+- userId: id của user
+- password: string (mật khẩu cũ)
+- newPassword: string (mật khẩu mới)
+
+
+// ADMIN
+1. get list user (GET)
+* url: /admin/list-user
+
+2. block/unblock user (POST)
+- adminId (Id của admin thực hiện thao tác)
+- userId (Id của user bị thực hiện thao tác)
+- status: int (0-mở khóa,1-khóa)
+* url: /admin/list-user-status
+
+
+// USER
+1. Gửi lời mời kết bạn (POST)
+- fromUserId: người gửi lời mời
+- toUserId: người nhận lời mời
+* url: /user/send-friend-invitation
+
+2. chấp nhận/ từ chối lời mời kết bạn (POST)
+- invitationId (id của lời mời, lúc get danh sách lời mời thì server sẽ trả id tương ứng trước đó)
+- userId: (id người gửi request)
+- status: boolean (true-chấp nhận, false-từ chối)
+* url: /user/on-processing-friend-invitation
+
+3. hủy kết bạn (DELETE)
+- friendId (id của tình bạn, được trả về từ server lúc lấy danh sách bạn bè)
+- userId (id người gửi hủy kết bạn)
+* url: /user/unfriend
+
+4. danh sách bạn bè (GET)
+* url: /user/list-friend

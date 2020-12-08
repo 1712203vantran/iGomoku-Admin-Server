@@ -36,7 +36,6 @@ module.exports.signIn = async function(req, res, next)
  */
 module.exports.signUp = async function(req, res, next)
 {
-    console.log(JSON.stringify(req.body));
     // create new account
     const account = new Account({
         username: req.body.username,
