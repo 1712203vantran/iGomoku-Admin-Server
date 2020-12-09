@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const http = require("http");
 const cors = require('cors');
 const app = express();
-const mongoDBConnnection = require('./db/mongoDB');
+const mongoDBConnnection = require('./db/MongoDB');
 const logger = require('morgan');
 const configSocketIO = require("./config/SocketIO.Cfg");
 
