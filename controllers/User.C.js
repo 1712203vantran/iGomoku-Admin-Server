@@ -21,7 +21,7 @@ module.exports.sendMakingFriendRequest = async function(req, res, next)
 
     // id is not valid
     if(!ObjectId.isValid(fromUser_Id) || !ObjectId.isValid(toUser_Id)){
-        res.status(StatusResponseConfig.ERROR).send({message: "Wrong id data !!", code: StatusResponseConfig.WRONG_DATA});
+        res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
         return;
     }
 
@@ -30,14 +30,14 @@ module.exports.sendMakingFriendRequest = async function(req, res, next)
 
     // Case one of fromUser or toUser is not exist (not included admin)
     if(!fromUser || !toUser){
-        res.status(StatusResponseConfig.ERROR).send({message: "Wrong request !!", code: StatusResponseConfig.WRONG_REQUEST});
+        res.status(StatusResponseConfig.Error).send({message: "Wrong request !!"});
         return;
     }
 
     // case invitation is existed
     const f_Invitation = await FriendInvitation.findOne({"fromUser": fromUser_Id, "toUser": toUser_Id}).exec();
     if(f_Invitation){
-        res.status(StatusResponseConfig.ERROR).send({message: "FriendInvitation is existed !!", code: StatusResponseConfig.DATA_EXISTED});
+        res.status(StatusResponseConfig.Error).send({message: "FriendInvitation is existed !!"});
         return;
     }
 
@@ -48,9 +48,9 @@ module.exports.sendMakingFriendRequest = async function(req, res, next)
 
     try {
         const savedInvitation = await makingFriendRequest.save();
-        res.status(StatusResponseConfig.OK).send(savedInvitation);
+        res.status(StatusResponseConfig.Ok).send(savedInvitation);
     }catch(error) {
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
     }
 };
 
@@ -68,7 +68,7 @@ module.exports.processingFriendInvitation = async function(req, res, next)
 
     // id is not valid
     if(!ObjectId.isValid(invitationId) || !ObjectId.isValid(userId)){
-        res.status(StatusResponseConfig.ERROR).send({message: "Wrong id data !!", code: StatusResponseConfig.WRONG_DATA});
+        res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
         return;
     }
 
@@ -76,13 +76,13 @@ module.exports.processingFriendInvitation = async function(req, res, next)
 
     // if invitation not exist
     if(!invitation){
-        res.status(StatusResponseConfig.ERROR).send({message: "This FriendInvitation is not existed !!", code: StatusResponseConfig.WRONG_REQUEST});
+        res.status(StatusResponseConfig.Error).send({message: "This FriendInvitation is not existed !!"});
         return;
     }
 
     // if user send action is not user receive invitation
     if(userId !== invitation.toUser){
-        res.status(StatusResponseConfig.ERROR).send({message: "User send request must be user received friend invitation !!", code: StatusResponseConfig.WRONG_REQUEST});
+        res.status(StatusResponseConfig.Error).send({message: "User send request must be user received friend invitation !!"});
         return;
     }
 
@@ -92,7 +92,7 @@ module.exports.processingFriendInvitation = async function(req, res, next)
         const fFriend2 = await Friend.findOne({"user01": invitation.toUser, "user02": invitation.fromUser}).exec();
 
         if(fFriend1 || fFriend2){
-            res.status(StatusResponseConfig.ERROR).send({message: "They are friend before !!", code: StatusResponseConfig.FRIENDSHIP_EXISTED});
+            res.status(StatusResponseConfig.Error).send({message: "They are friend before !!"});
             return;
         }
 
@@ -104,9 +104,9 @@ module.exports.processingFriendInvitation = async function(req, res, next)
 
         try{
             const savedFriend = await newFriend.save();
-            res.status(StatusResponseConfig.OK).send(savedFriend);
+            res.status(StatusResponseConfig.Ok).send(savedFriend);
         } catch(error){
-            res.status(StatusResponseConfig.ERROR).send({message: error});
+            res.status(StatusResponseConfig.Error).send({message: error});
         }
     }
     else{
@@ -135,29 +135,29 @@ module.exports.unFriend = async function(req, res, next)
     
     // id is not valid
     if(!ObjectId.isValid(friend_id) || !ObjectId.isValid(sender_id)){
-        res.status(StatusResponseConfig.ERROR).send({message: "Wrong id data !!", code: StatusResponseConfig.WRONG_DATA});
+        res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
         return;
     }
 
     // check friend_id is existed ??
     var fFriend = await Friend.findById(friend_id).exec();
     if(!fFriend){
-        res.status(StatusResponseConfig.ERROR).send({message: "FriendShip is not existed !!", code: StatusResponseConfig.NOT_FOUND_DATA});
+        res.status(StatusResponseConfig.Error).send({message: "FriendShip is not existed !!"});
         return;
     }
 
     // check sender is have permission ???
     if(sender_id !== fFriend.user01 && sender_id !== fFriend.user02){
-        res.status(StatusResponseConfig.ERROR).send({message: "Wrong request !!", code: StatusResponseConfig.NOT_FOUND_DATA});
+        res.status(StatusResponseConfig.Error).send({message: "Wrong request !!"});
         return;
     }
 
     // unfriend successfully
     try {
         const removedFriend = await Friend.remove({_id: friend_id});
-        res.status(StatusResponseConfig.OK).send(removedFriend);
+        res.status(StatusResponseConfig.Ok).send(removedFriend);
     }catch(error) {
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
     }
 };
 
@@ -171,7 +171,7 @@ module.exports.getListFriend = async function(req, res, next)
 
     // id is not valid
     if(!ObjectId.isValid(userId) ){
-        res.status(StatusResponseConfig.ERROR).send({message: "Wrong id data !!", code: StatusResponseConfig.WRONG_DATA});
+        res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
         return;
     }
 
@@ -180,9 +180,9 @@ module.exports.getListFriend = async function(req, res, next)
         const listFriend_2 = await Friend.find({"user02": userId}).exec();
         const listFriend = listFriend_1.concat(listFriend_2);
 
-        res.status(StatusResponseConfig.OK).send(listFriend);
+        res.status(StatusResponseConfig.Ok).send(listFriend);
     }catch(error) {
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
     }
 };
 

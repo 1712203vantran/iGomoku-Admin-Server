@@ -1,5 +1,5 @@
 const Account = require('../models/Account.M');
-const jwtOptions = { secretOrKey: "nhoxtheanh" };
+const jwtCfg = require('../config/JWT.Cfg');
 const jwt = require("jsonwebtoken");
 
 // config
@@ -20,17 +20,17 @@ module.exports.signIn = async function(req, res, next)
     try {
         const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
         if(!account){
-            res.status(StatusResponseConfig.ERROR).send({message: "Account is not exist!", code: StatusResponseConfig.ACCOUNT_NOT_EXISTED});
+            res.status(StatusResponseConfig.Error).send({message: "Account is not exist!"});
         }else{// Login successfully
             var payload = { userID: account._id };
-            var token = jwt.sign(payload, jwtOptions.secretOrKey);
-            res.status(StatusResponseConfig.OK).json({
+            var token = jwt.sign(payload, jwtCfg.secret);
+            res.status(StatusResponseConfig.Ok).json({
                 token: token,
                 account: account
               });
         }
     }catch(error) {
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
     }
 };
 
@@ -50,11 +50,11 @@ module.exports.signInGoogle = async function(req, res, next)
         if(f_account){  // account existed, check password
             const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
             if(!account){
-                res.status(StatusResponseConfig.ERROR).send({message: "Wrong login information!", code: StatusResponseConfig.ACCOUNT_NOT_EXISTED});
+                res.status(StatusResponseConfig.Error).send({message: "Wrong login information!"});
             }else{// Login successfully
                 var payload = { userID: account._id };
-                var token = jwt.sign(payload, jwtOptions.secretOrKey);
-                res.status(StatusResponseConfig.OK).json({
+                var token = jwt.sign(payload, jwtCfg.secret);
+                res.status(StatusResponseConfig.Ok).json({
                     token: token,
                     account: account
                 });
@@ -62,7 +62,7 @@ module.exports.signInGoogle = async function(req, res, next)
             return;
         }
     } catch(error){
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
         return;
     }
 
@@ -74,15 +74,17 @@ module.exports.signInGoogle = async function(req, res, next)
             fullname: fullname,
             permission: permission
         });
+
         const savedAccount = await newAccount.save();
         var payload = { userID: savedAccount._id };
-        var token = jwt.sign(payload, jwtOptions.secretOrKey);
-        res.status(StatusResponseConfig.OK).json({
+        var token = jwt.sign(payload, jwtCfg.secret);
+
+        res.status(StatusResponseConfig.Ok).json({
             token: token,
             savedAccount: savedAccount
         });
     } catch(error){
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
     }
 };
 
@@ -102,11 +104,11 @@ module.exports.signInFacebook = async function(req, res, next)
         if(f_account){  // account existed, check password
             const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
             if(!account){
-                res.status(StatusResponseConfig.ERROR).send({message: "Wrong login information!", code: StatusResponseConfig.ACCOUNT_NOT_EXISTED});
-            }else{// Login successfully
+                res.status(StatusResponseConfig.Error).send({message: "Wrong login information!"});
+            }else{ // Login successfully
                 var payload = { userID: account._id };
-                var token = jwt.sign(payload, jwtOptions.secretOrKey);
-                res.status(StatusResponseConfig.OK).json({
+                var token = jwt.sign(payload, jwtCfg.secret);
+                res.status(StatusResponseConfig.Ok).json({
                     token: token,
                     account: account
                 });
@@ -114,7 +116,7 @@ module.exports.signInFacebook = async function(req, res, next)
             return;
         }
     } catch(error){
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
         return;
     }
 
@@ -126,15 +128,17 @@ module.exports.signInFacebook = async function(req, res, next)
             fullname: fullname,
             permission: permission
         });
+
         const savedAccount = await newAccount.save();
         var payload = { userID: savedAccount._id };
-        var token = jwt.sign(payload, jwtOptions.secretOrKey);
-        res.status(StatusResponseConfig.OK).json({
+        var token = jwt.sign(payload, jwtCfg.secret);
+
+        res.status(StatusResponseConfig.Ok).json({
             token: token,
             savedAccount: savedAccount
         });
     } catch(error){
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
     }
 };
 
@@ -159,20 +163,26 @@ module.exports.signUp = async function(req, res, next)
     try{
         const f_account = await Account.findOne({'username': req.body.username }).exec();
         if(f_account){
-            res.status(StatusResponseConfig.ERROR).send({message: "Account is existed", code: StatusResponseConfig.ACCOUNT_EXISTED});
+            res.status(StatusResponseConfig.Error).send({message: "Account is existed"});
             return;
         }
     } catch(error){
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
         return;
     }
 
     // create new account
     try{
         const savedAccount = await account.save();
-        res.status(StatusResponseConfig.OK).send(savedAccount);
+        var payload = { userID: savedAccount._id };
+        var token = jwt.sign(payload, jwtCfg.secret);
+
+        res.status(StatusResponseConfig.Ok).send({
+            token: token, 
+            savedAccount: savedAccount
+        });
     } catch(error){
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
     }
 };
 
@@ -198,9 +208,9 @@ module.exports.updateProfile = async function(req, res, next)
                 }
             }
         );
-        res.status(StatusResponseConfig.OK).send(updatedProfile);
+        res.status(StatusResponseConfig.Ok).send(updatedProfile);
     }catch(error) {
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
     }
 };
 
@@ -219,7 +229,7 @@ module.exports.changePassword = async function(req, res, next)
 
     // case user input old password wrong
     if(account.password !== password){
-        res.status(StatusResponseConfig.WRONG_PASSWORD).send({});
+        res.status(StatusResponseConfig.Error).send({message: "Password is wrong"});
     }
 
     try {
@@ -231,9 +241,9 @@ module.exports.changePassword = async function(req, res, next)
                 }
             }
         );
-        res.status(StatusResponseConfig.OK).send(changedPassword);
+        res.status(StatusResponseConfig.Ok).send(changedPassword);
     }catch(error) {
-        res.status(StatusResponseConfig.ERROR).send({message: error});
+        res.status(StatusResponseConfig.Error).send({message: error});
     }
 };
 

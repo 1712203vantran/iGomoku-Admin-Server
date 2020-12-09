@@ -8,9 +8,9 @@ module.exports.getListUser = async function(req, res, next){
     // return list user
     try {
         const listUser = await Account.find({"permission": AccountConstant.PERMISSION_USER}).exec();
-        res.status(StatusConstant.OK).send(listUser);
+        res.status(StatusConstant.Ok).send(listUser);
     }catch(error) {
-        res.status(StatusConstant.ERROR).send({message: error});
+        res.status(StatusConstant.Error).send({message: error});
     }
 }
 
@@ -21,7 +21,7 @@ module.exports.settingUserAccessing =  async function(req, res, next){
     const status = parseInt(req.body.status);
 
     if(!Utils.isAdminPermisssion(adminId)){
-        res.status(StatusConstant.NOT_HAVE_PERMISSION).send({});
+        res.status(StatusConstant.Error).send({message: "Must be admin !!"});
         return;
     }
 
@@ -34,9 +34,9 @@ module.exports.settingUserAccessing =  async function(req, res, next){
                 }
             }
         );
-        res.status(StatusConstant.OK).send(updatedStatusAccount);
+        res.status(StatusConstant.Ok).send(updatedStatusAccount);
     }catch(error) {
-        res.status(StatusConstant.ERROR).send({message: error});
+        res.status(StatusConstant.Error).send({message: error});
     }
 }
 

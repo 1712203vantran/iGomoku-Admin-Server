@@ -1,12 +1,11 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const http = require("http");
 const cors = require('cors');
 const app = express();
-const mongoDBConnnection = require('./db/MongoDB');
 const logger = require('morgan');
 const configSocketIO = require("./config/SocketIO.Cfg");
+const mongoDBConnnection = require('./db/MongoDB');
 
 const PORT = process.env.PORT || 8000;
 
@@ -46,10 +45,15 @@ const SearchRoute = require('./routers/Search.R');
 const ErrorRoute = require('./routers/Error.R');
 const iGomokuRoute = require('./routers/iGomoku.R');
 
+
+// Import Middlewares
+const AuthMiddleware = require('./middlewares/Auth.Middleware');
+
+
 // Use router
 app.use('/auth', AuthRoute);
-app.use('/admin', AdminRoute);
-app.use('/user', UserRoute);
+app.use('/admin', AuthMiddleware, AdminRoute);
+app.use('/user',  AuthMiddleware, UserRoute);
 app.use('/board', BoardRoute);
 app.use('/search', SearchRoute);
 app.use('/iGomoku', iGomokuRoute);
