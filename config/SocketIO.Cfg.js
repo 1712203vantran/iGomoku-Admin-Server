@@ -16,25 +16,32 @@ const configSocketIO = (io) =>{
         console.log(`Socket [${socket.id}]: connected.`);
 
         socket.on(EVENT_NAMES.REQUEST_USER_LIST, async (user)=>{
-           
-            const status = await listOnlineUser.addNewUserConnect(user, socket);
-            if (status === StatusResponseConfig.OK)
-            {   
-                const listUser = listOnlineUser.getListOnlineUser();
-                io.sockets.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
+            let status = StatusResponseConfig.Ok;
+
+            if (user.userID !== "0")
+            {
+                status = await listOnlineUser.addNewUserConnect(user, socket);
+                if (status === StatusResponseConfig.Ok)
+                {   
+                    const listUser = listOnlineUser.getListOnlineUser();
+                    console.log(listUser.length);
+                    io.sockets.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
+                }
             }
             else{
-
+                const listUser = listOnlineUser.getListOnlineUser();
+                socket.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
             }
         })
            
-        // socket.on(EVENT_NAMES.SIGN_OUT, (user)=>{
-        //     console.log(`Socket [${socket.id}]: sign out.`);
-        //     listOnlineUser.removeUser(user);
+        socket.on(EVENT_NAMES.SIGN_OUT, (user)=>{
+            console.log(`Socket [${socket.id}]: sign out.`);
+            listOnlineUser.removeUser(user);
 
-        //     const listUser = listOnlineUser.getListOnlineUser();
-        //     io.sockets.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
-        // })
+            const listUser = listOnlineUser.getListOnlineUser();
+            console.log(listUser.length);
+            socket.broadcast.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
+        })
 
         socket.on(EVENT_NAMES.DISCONNECT, () => {
             console.log(`Socket [${socket.id}]: disconnected.`);

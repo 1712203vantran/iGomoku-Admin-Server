@@ -18,6 +18,7 @@ const listOnlineUser = {
                 fullname: client.fullname,
                 _id: client._id,
                 elo: client.elo,
+                coin: client.xu,
                 socketID: socket.id,
             }
             
@@ -33,10 +34,10 @@ const listOnlineUser = {
                 clients.push(clientObj); 
             }
 
-            return StatusResponseConfig.OK;
+            return StatusResponseConfig.Ok;
         } catch (error) {
             console.log(error);
-            return StatusResponseConfig.ERROR;
+            return StatusResponseConfig.Error;
         }
     },
 
@@ -45,7 +46,7 @@ const listOnlineUser = {
     },
 
     removeUser: (user) =>{
-        clients = clients.filter(client => client._id !== user.userID);
+        clients = clients.filter(client => !client._id.equals(user.userID));
     }
 }
 
