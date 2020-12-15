@@ -3,6 +3,11 @@ const Utils = require('../utils/Utils');
 const StatusConstant = require('../config/StatusResponseConfig');
 const BoardConstants = require('../config/Board.Cfg');
 
+/*
+    CREATE BOARD
+    - userId: string
+    - boardName: string
+ */
 module.exports.createBoard = async function (req, res, next) {
     const userId = req.body.userId; // user create board (owner)
     const boardName = req.body.boardName;
@@ -22,6 +27,10 @@ module.exports.createBoard = async function (req, res, next) {
     }
 };
 
+/*
+    DELETE BOARD
+    - boardId: string
+ */
 module.exports.deleteBoard = async function (req, res, next) {
     const boardId = req.body.boardId;
 
@@ -36,6 +45,10 @@ module.exports.deleteBoard = async function (req, res, next) {
     }
 };
 
+/*
+    FIND BOARD BY ID
+    - boardId: string
+ */
 module.exports.findBoardById = async function (req, res, next) {
     const boardId = req.body.boardId;
 
@@ -51,6 +64,10 @@ module.exports.findBoardById = async function (req, res, next) {
 };
 
 
+/*
+    FIND BOARD BY NAME
+    - boardName: string
+ */
 module.exports.findBoardByName = async function (req, res, next) {
     const boardName = req.body.boardName;
 
@@ -65,6 +82,11 @@ module.exports.findBoardByName = async function (req, res, next) {
     }
 };
 
+/*
+    ON JOIN BOARD
+    - USER Id: string
+    - Board Id: String
+ */
 module.exports.playerJoinBoard = async function (req, res, next) {
     const playerId = req.body.userId;
     const boardId = req.body.boardId;
@@ -86,6 +108,11 @@ module.exports.playerJoinBoard = async function (req, res, next) {
     }
 };
 
+/*
+    ON LEAVE BOARD
+    - USER Id: string
+    - Board Id: String
+ */
 module.exports.playerLeaveBoard = async function (req, res, next) {
     const playerId = req.body.userId;
     const boardId = req.body.boardId;
@@ -151,4 +178,22 @@ module.exports.playerLeaveBoard = async function (req, res, next) {
         console.log("[OnPlayerLeaveBoard] - Board is not existed: " + error);
     }
 
+};
+
+
+
+/*
+    GET LIST BOARD
+    - USER Id: string
+ */
+module.exports.getListBoard = async function(req, res, next)
+{
+    try {
+        const listBoard = await Board.find({}).exec();
+        res.status(StatusResponseConfig.Ok).send(listBoard);
+        console.log(`[GetListBoard] - Success: ${listBoard}`);
+    }catch(error) {
+        res.status(StatusResponseConfig.Error).send({message: error});
+        console.log(`[GetListBoard] - Error: ${error}`);
+    }
 };

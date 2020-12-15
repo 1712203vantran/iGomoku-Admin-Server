@@ -1,0 +1,24 @@
+CÓ GỬI KÈM 'token' trong mỗi req
+
+1. create board (/board/create) - POST
+- userId: id của người tạo
+- boardName: tên của board
+
+2. delete board (/board/delete) - POST
+- boardId
+
+3. findBoardById (/board/find-by-id) POST
+- boardId
+
+4. find board by name (/board/find-by-name) POST
+- boardName
+
+5. join board (/board/on-join) pOST
+- boardId
+- userId
+
+6. leave board (/board/on-leave) POST
+- boardId
+- userId
+
+7. list board (board/list) GET
