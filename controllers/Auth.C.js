@@ -221,7 +221,7 @@ module.exports.getProfile = async function(req, res, next)
     const id = req.body.userId;
 
     try {
-        const profile = await findById.findById(id);
+        const profile = await Account.findById(id);
         res.status(StatusResponseConfig.Ok).send(profile);
     }catch(error) {
         res.status(StatusResponseConfig.Error).send({message: error});
