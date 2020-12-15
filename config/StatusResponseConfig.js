@@ -11,6 +11,6 @@ StatusResponseConfig.Error = 400;
 StatusResponseConfig.Forbidden = 403;
 StatusResponseConfig.Unauthorized = 403;
 StatusResponseConfig.Not_Found = 404;
-
+StatusResponseConfig.Conflict = 409;    // data is existed (account, invitation, friend)
 
 module.exports = StatusResponseConfig;

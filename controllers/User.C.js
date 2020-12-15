@@ -22,6 +22,7 @@ module.exports.sendMakingFriendRequest = async function(req, res, next)
     // id is not valid
     if(!ObjectId.isValid(fromUser_Id) || !ObjectId.isValid(toUser_Id)){
         res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
+        console.log(`[SendMakingFriendRequest] - User ID is not valid: ${fromUser_Id} - ${toUser_Id}`);
         return;
     }
 
@@ -31,6 +32,7 @@ module.exports.sendMakingFriendRequest = async function(req, res, next)
     // Case one of fromUser or toUser is not exist (not included admin)
     if(!fromUser || !toUser){
         res.status(StatusResponseConfig.Error).send({message: "Wrong request !!"});
+        console.log(`[SendMakingFriendRequest] - User is not existed: ${fromUser_Id} - ${toUser_Id}`);
         return;
     }
 
@@ -38,6 +40,7 @@ module.exports.sendMakingFriendRequest = async function(req, res, next)
     const f_Invitation = await FriendInvitation.findOne({"fromUser": fromUser_Id, "toUser": toUser_Id}).exec();
     if(f_Invitation){
         res.status(StatusResponseConfig.Error).send({message: "FriendInvitation is existed !!"});
+        console.log(`[SendMakingFriendRequest] - Invitation is  existed: ${f_Invitation}`);
         return;
     }
 
@@ -49,8 +52,10 @@ module.exports.sendMakingFriendRequest = async function(req, res, next)
     try {
         const savedInvitation = await makingFriendRequest.save();
         res.status(StatusResponseConfig.Ok).send(savedInvitation);
+        console.log(`[SendMakingFriendRequest] - Success - Invitation: ${savedInvitation}`);
     }catch(error) {
         res.status(StatusResponseConfig.Error).send({message: error});
+        console.log(`[SendMakingFriendRequest] - Error - Invitation: ${error}`);
     }
 };
 
@@ -69,6 +74,7 @@ module.exports.processingFriendInvitation = async function(req, res, next)
     // id is not valid
     if(!ObjectId.isValid(invitationId) || !ObjectId.isValid(userId)){
         res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
+        console.log(`[ProcessingFriendInvitation] - Wrong Id: {userId-${invitationId}} {invitationId-${userId}} `);
         return;
     }
 
@@ -77,12 +83,14 @@ module.exports.processingFriendInvitation = async function(req, res, next)
     // if invitation not exist
     if(!invitation){
         res.status(StatusResponseConfig.Error).send({message: "This FriendInvitation is not existed !!"});
+        console.log(`[ProcessingFriendInvitation] - Invitation is not existed: ${invitationId}`);
         return;
     }
 
     // if user send action is not user receive invitation
     if(userId !== invitation.toUser){
         res.status(StatusResponseConfig.Error).send({message: "User send request must be user received friend invitation !!"});
+        console.log(`[ProcessingFriendInvitation] - Wrong Data: ${invitationId}`);
         return;
     }
 
@@ -93,6 +101,7 @@ module.exports.processingFriendInvitation = async function(req, res, next)
 
         if(fFriend1 || fFriend2){
             res.status(StatusResponseConfig.Error).send({message: "They are friend before !!"});
+            console.log(`[ProcessingFriendInvitation]- Error - They are friend before`);
             return;
         }
 
@@ -105,8 +114,10 @@ module.exports.processingFriendInvitation = async function(req, res, next)
         try{
             const savedFriend = await newFriend.save();
             res.status(StatusResponseConfig.Ok).send(savedFriend);
+            console.log(`[ProcessingFriendInvitation] - Success: ${savedFriend}`);
         } catch(error){
             res.status(StatusResponseConfig.Error).send({message: error});
+            console.log(`[ProcessingFriendInvitation] - Error: ${error}`);
         }
     }
     else{
@@ -116,9 +127,9 @@ module.exports.processingFriendInvitation = async function(req, res, next)
     // delete invitation
     try {
         const removedInvitation = await FriendInvitation.remove({_id: invitationId});
-        console.log(`Delete Invitation ${invitationId} successfully!`);
+        console.log(`[ProcessingFriendInvitation] - Delete Invitation: ${invitationId}`);
     }catch(error) {
-        console.log("Error delete invitation msg: " + error);
+        console.log("[ProcessingFriendInvitation] - Error delete invitation msg: " + error);
     }
 };
 
@@ -135,7 +146,8 @@ module.exports.unFriend = async function(req, res, next)
     
     // id is not valid
     if(!ObjectId.isValid(friend_id) || !ObjectId.isValid(sender_id)){
-        res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
+        res.status(StatusResponseConfig.Error).send({message: "Wrong Id data !!"});
+        console.log(`[UnFriend] - Wrong Id: {sernder-${sender_id}} {friend-${friend_id}} `);
         return;
     }
 
@@ -143,12 +155,14 @@ module.exports.unFriend = async function(req, res, next)
     var fFriend = await Friend.findById(friend_id).exec();
     if(!fFriend){
         res.status(StatusResponseConfig.Error).send({message: "FriendShip is not existed !!"});
+        console.log(`[UnFriend] - Error - Friendship is not existed - ${friend_id}`);
         return;
     }
 
     // check sender is have permission ???
     if(sender_id !== fFriend.user01 && sender_id !== fFriend.user02){
         res.status(StatusResponseConfig.Error).send({message: "Wrong request !!"});
+        console.log(`[UnFriend] - Error - Sender is not in friendship: sender{${sender_id}} - {friendship${friend_id}}`);
         return;
     }
 
@@ -156,8 +170,10 @@ module.exports.unFriend = async function(req, res, next)
     try {
         const removedFriend = await Friend.remove({_id: friend_id});
         res.status(StatusResponseConfig.Ok).send(removedFriend);
+        console.log(`[UnFriend] - Success: ${removedFriend}`);
     }catch(error) {
         res.status(StatusResponseConfig.Error).send({message: error});
+        console.log(`[UnFriend] - Error: ${error}`);
     }
 };
 
@@ -172,6 +188,7 @@ module.exports.getListFriend = async function(req, res, next)
     // id is not valid
     if(!ObjectId.isValid(userId) ){
         res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
+        console.log(`[GetListFriend] - Wrong Id - UserId: ${userId}`);
         return;
     }
 
@@ -181,8 +198,10 @@ module.exports.getListFriend = async function(req, res, next)
         const listFriend = listFriend_1.concat(listFriend_2);
 
         res.status(StatusResponseConfig.Ok).send(listFriend);
+        console.log(`[GetListFriend] - Success: ${listFriend}`);
     }catch(error) {
         res.status(StatusResponseConfig.Error).send({message: error});
+        console.log(`[GetListFriend] - Error: ${error}`);
     }
 };
 

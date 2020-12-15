@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const BoardConstants = require('../config/Board.Cfg');
 
 // Board Scheme
 /*
@@ -16,7 +17,8 @@ const BoardScheme = mongoose.Schema({
     },
     player: {
         type: String,
-        required: true
+        required: false,
+        default: null
     },
     boardName: {
         type: String,
@@ -28,7 +30,7 @@ const BoardScheme = mongoose.Schema({
     },
     boardStatus: {
         type: Number,
-        required: true
+        default: BoardConstants.WATING_STATUS
     }
 });
 
