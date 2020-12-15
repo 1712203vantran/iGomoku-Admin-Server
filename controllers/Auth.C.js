@@ -4,6 +4,7 @@ const jwt = require("jsonwebtoken");
 
 // config
 const StatusResponseConfig = require('../config/StatusResponseConfig');
+const { findById } = require('../models/Account.M');
 
 /*
     SIGN IN
@@ -209,6 +210,19 @@ module.exports.updateProfile = async function(req, res, next)
             }
         );
         res.status(StatusResponseConfig.Ok).send(updatedProfile);
+    }catch(error) {
+        res.status(StatusResponseConfig.Error).send({message: error});
+    }
+};
+
+
+module.exports.getProfile = async function(req, res, next)
+{
+    const id = req.body.userId;
+
+    try {
+        const profile = await findById.findById(id);
+        res.status(StatusResponseConfig.Ok).send(profile);
     }catch(error) {
         res.status(StatusResponseConfig.Error).send({message: error});
     }

@@ -10,5 +10,7 @@ router.post('/signinFacebook', AuthController.signInFacebook);
 
 router.post('/signup', AuthController.signUp);
 
+router.get('/profile', AuthController.getProfile);
+
 
 module.exports = router;
