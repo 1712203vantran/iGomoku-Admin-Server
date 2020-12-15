@@ -167,8 +167,8 @@ module.exports.unFriend = async function(req, res, next)
  */
 module.exports.getListFriend = async function(req, res, next)
 {
-    const userId = req.body.userId;
-
+    const userId = req.query.userId;
+    
     // id is not valid
     if(!ObjectId.isValid(userId) ){
         res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});

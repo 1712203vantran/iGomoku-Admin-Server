@@ -1,16 +1,19 @@
 const AuthUtils = require('../utils/Auth.Utils');
 const StatusContans = require('../config/StatusResponseConfig');
+const config = require('../config/JWT.Cfg');
 
 const tokenCheck = async function (req, res, next) {
     // Lấy thông tin mã token được đính kèm trong request
     const token = req.body.token || req.query.token || req.headers['x-access-token'];
-
+    
     // decode token
     if (token) {
         // Xác thực mã token và kiểm tra thời gian hết hạn của mã
         try {
+            
             const decoded = await AuthUtils.verifyJwtToken(token, config.secret);
             // Lưu thông tin giã mã được vào đối tượng req, dùng cho các xử lý ở sau
+            
             req.decoded = decoded;
             next();
         } catch (err) {
