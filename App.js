@@ -5,7 +5,7 @@ const cors = require('cors');
 const app = express();
 const logger = require('morgan');
 const configSocketIO = require("./config/SocketIO.Cfg");
-const mongoDBConnnection = require('./db/MongoDB');
+const mongoDBConnnection = require('./db/mongoDB');
 
 const PORT = process.env.PORT || 8000;
 
