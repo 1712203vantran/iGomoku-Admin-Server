@@ -6,6 +6,7 @@ const Utils = require('../utils/Utils');
     - Username: String
     - Password: String/ md5 hash
     - Fullname: String
+    - Email: String
     - Permission: int (0-user, 1-admin)
     - Xu: unsigned int (money in game)
     - account status: unsigned int (0-normal, 1-blocked)
@@ -24,6 +25,10 @@ const AccountSchema = mongoose.Schema({
     fullname: {
         type: String,
         required: true
+    },
+    email: {
+        type: String,
+        default: ""
     },
     permission: {
         type: Number,

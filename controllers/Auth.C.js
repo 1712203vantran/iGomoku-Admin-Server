@@ -39,6 +39,7 @@ module.exports.signInGoogle = async function(req, res, next)
 {
     const username = req.body.username;
     const fullname = req.body.fullname;
+    const email = req.body.email;
     //const token = req.body.token;
     const password = "google";
     const permission = parseInt(req.body.permission);
@@ -73,6 +74,7 @@ module.exports.signInGoogle = async function(req, res, next)
             username: username,
             password: password,
             fullname: fullname,
+            email: email,
             permission: permission
         });
 
@@ -93,6 +95,7 @@ module.exports.signInFacebook = async function(req, res, next)
 {
     const username = req.body.username;
     const fullname = req.body.fullname;
+    const email = req.body.email;
     //const token = req.body.token;
     const password = "facebook";
     const permission = parseInt(req.body.permission);
@@ -127,6 +130,7 @@ module.exports.signInFacebook = async function(req, res, next)
             username: username,
             password: password,
             fullname: fullname,
+            email: email,
             permission: permission
         });
 
@@ -148,6 +152,7 @@ module.exports.signInFacebook = async function(req, res, next)
     - Username
     - Password
     - Fullname
+    - Email
     - Permission
  */
 module.exports.signUp = async function(req, res, next)
@@ -157,6 +162,7 @@ module.exports.signUp = async function(req, res, next)
         username: req.body.username,
         password: req.body.password,
         fullname: req.body.fullname,
+        email: req.body.email,
         permission: parseInt(req.body.permission)
     });
 
@@ -191,6 +197,7 @@ module.exports.signUp = async function(req, res, next)
 /*
     UPDATE INFO PROFILE
     - Fullname
+    - Email
     (Version 1.0)
  */
 module.exports.updateProfile = async function(req, res, next)
@@ -199,6 +206,7 @@ module.exports.updateProfile = async function(req, res, next)
     const username = req.body.username;
     const password = req.body.password;
     const fullname = req.body.fullname;
+    const email = req.body.email;
 
     try {
         const updatedProfile = await Account.updateOne(
@@ -206,6 +214,7 @@ module.exports.updateProfile = async function(req, res, next)
             { $set: 
                 {
                     fullname: fullname,
+                    email: email,
                 }
             }
         );
@@ -235,15 +244,18 @@ module.exports.getProfile = async function(req, res, next)
 module.exports.changePassword = async function(req, res, next)
 {
     const id = req.body.userId;
-    const username = req.body.username;
     const password = req.body.password;
     const newPassword = req.body.newPassword;
 
     const account = await Account.findById(id);
 
     // case user input old password wrong
+    console.log(password);
+    console.log(account.password);
     if(account.password !== password){
+        console.log("wrong password");
         res.status(StatusResponseConfig.Error).send({message: "Password is wrong"});
+        return;
     }
 
     try {
