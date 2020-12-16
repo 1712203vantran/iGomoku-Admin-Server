@@ -8,6 +8,6 @@ router.post('/send-friend-invitation', UserController.sendMakingFriendRequest);
 
 router.post('/on-processing-friend-invitation', UserController.processingFriendInvitation);
 
-router.delete('/unfriend', UserController.unFriend);
+router.post('/unfriend', UserController.unFriend);
 
 module.exports = router;

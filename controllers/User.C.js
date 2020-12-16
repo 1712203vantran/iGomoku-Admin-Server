@@ -141,34 +141,31 @@ module.exports.processingFriendInvitation = async function(req, res, next)
  */
 module.exports.unFriend = async function(req, res, next)
 {
-    const friend_id = req.body.friendId;
-    const sender_id = req.body.userId;
+    const playerId = req.body.playerId;
+    const senderId = req.body.userId;
     
     // id is not valid
-    if(!ObjectId.isValid(friend_id) || !ObjectId.isValid(sender_id)){
+    if(!ObjectId.isValid(senderId) || !ObjectId.isValid(playerId)){
         res.status(StatusResponseConfig.Error).send({message: "Wrong Id data !!"});
-        console.log(`[UnFriend] - Wrong Id: {sernder-${sender_id}} {friend-${friend_id}} `);
+        console.log(`[UnFriend] - Wrong Id: {sernder-${senderId}} {friend-${playerId}} `);
         return;
     }
 
     // check friend_id is existed ??
-    var fFriend = await Friend.findById(friend_id).exec();
+    var fFriend = await Friend.findOne({user01: senderId, user02: playerId}).exec();
+    if(!fFriend){
+        fFriend = await Friend.findOne({user01: playerId, user02: senderId}).exec();
+    }
     if(!fFriend){
         res.status(StatusResponseConfig.Error).send({message: "FriendShip is not existed !!"});
-        console.log(`[UnFriend] - Error - Friendship is not existed - ${friend_id}`);
+        console.log(`[UnFriend] - Error - Friendship is not existed - ${fFriend}`);
         return;
     }
 
-    // check sender is have permission ???
-    if(sender_id !== fFriend.user01 && sender_id !== fFriend.user02){
-        res.status(StatusResponseConfig.Error).send({message: "Wrong request !!"});
-        console.log(`[UnFriend] - Error - Sender is not in friendship: sender{${sender_id}} - {friendship${friend_id}}`);
-        return;
-    }
 
     // unfriend successfully
     try {
-        const removedFriend = await Friend.remove({_id: friend_id});
+        const removedFriend = await Friend.remove({_id: fFriend._id});
         res.status(StatusResponseConfig.Ok).send(removedFriend);
         console.log(`[UnFriend] - Success: ${removedFriend}`);
     }catch(error) {
