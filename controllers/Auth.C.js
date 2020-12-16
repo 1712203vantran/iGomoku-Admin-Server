@@ -235,15 +235,18 @@ module.exports.getProfile = async function(req, res, next)
 module.exports.changePassword = async function(req, res, next)
 {
     const id = req.body.userId;
-    const username = req.body.username;
     const password = req.body.password;
     const newPassword = req.body.newPassword;
 
     const account = await Account.findById(id);
 
     // case user input old password wrong
+    console.log(password);
+    console.log(account.password);
     if(account.password !== password){
+        console.log("wrong password");
         res.status(StatusResponseConfig.Error).send({message: "Password is wrong"});
+        return;
     }
 
     try {
