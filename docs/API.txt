@@ -32,12 +32,14 @@
 - username: string
 - password: string
 - fullname: string
+- email: string
 - permission: number (0-admin, 1-user)
 * url: /auth/signup
 
 3. update profile (POST) (trước mắt là fullname)
 - userId: id của user
 - fullname: as new fullname
+- email: as new email
 
 4. change password (POST) (bắt user nhập lại mật khẩu cũ nữa)
 - userId: id của user
