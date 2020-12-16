@@ -9,20 +9,20 @@ const BoardConstants = require('../config/Board.Cfg');
     - boardName: string
  */
 module.exports.createBoard = async function (req, res, next) {
-    const userId = req.body.userId; // user create board (owner)
+    const userId = req.body.userID; // user create board (owner)
     const boardName = req.body.boardName;
-
+   
     const createdBoard = new Board({
         owner: userId,
         boardName: boardName
     });
-
+    console.log(createdBoard);
     try {
         const savedBoard = await createdBoard.save();
-        res.status(StatusResponseConfig.Ok).send(savedBoard);
+        res.status(StatusConstant.Ok).send(savedBoard);
         console.log(`[CreateNewBoard] - By ${userId} - Board: ${savedBoard}`);
     } catch (error) {
-        res.status(StatusResponseConfig.Error).send({ message: error });
+        res.status(StatusConstant.Error).send({ message: error });
         console.log(`[CreateNewBoard] - By ${userId} - Error: ${error}`);
     }
 };
@@ -100,10 +100,10 @@ module.exports.playerJoinBoard = async function (req, res, next) {
                 }
             }
         );
-        res.status(StatusResponseConfig.Ok).send(joinBoard);
+        res.status(StatusConstant.Ok).send(joinBoard);
         console.log(`[PlayerJoinBoard] - BoardId ${boardId} - PlayerId ${playerId}`);
     }catch(error) {
-        res.status(StatusResponseConfig.Error).send({message: error});
+        res.status(StatusConstant.Error).send({message: error});
         console.log(`[PlayerJoinBoard] - Error: ${error}`);
     }
 };
@@ -132,10 +132,10 @@ module.exports.playerLeaveBoard = async function (req, res, next) {
                         }
                     }
                 );
-                res.status(StatusResponseConfig.Ok).send(leaveBoard);
+                res.status(StatusConstant.Ok).send(leaveBoard);
                 console.log("[OnPlayerLeaveBoard] - Player Leave Board: " + leaveBoard);
             }catch(error) {
-                res.status(StatusResponseConfig.Error).send({message: error});
+                res.status(StatusConstant.Error).send({message: error});
                 console.log("[OnPlayerLeaveBoard] - Player Leave Board - Error: " + error);
             }
         }
@@ -152,10 +152,10 @@ module.exports.playerLeaveBoard = async function (req, res, next) {
                     }
                 );
                 console.log("[OnPlayerLeaveBoard] - Owner Leave Board: " + leaveBoard);
-                res.status(StatusResponseConfig.Ok).send(leaveBoard);
+                res.status(StatusConstant.Ok).send(leaveBoard);
             }catch(error) {
                 console.log("[OnPlayerLeaveBoard] - Owner Leave Board - Error: " + error);
-                res.status(StatusResponseConfig.Error).send({message: error});
+                res.status(StatusConstant.Error).send({message: error});
             }
 
             if(leaveBoard.owner === null){
@@ -169,12 +169,12 @@ module.exports.playerLeaveBoard = async function (req, res, next) {
         }
         // error
         else{
-            res.status(StatusResponseConfig.Error).send({message: ""});
+            res.status(StatusConstant.Error).send({message: ""});
             console.log("[OnPlayerLeaveBoard] - ID Player is not existed in board: " + error);
         }
     }
     else{
-        res.status(StatusResponseConfig.Error).send({message: "Board is not existed!"});
+        res.status(StatusConstant.Error).send({message: "Board is not existed!"});
         console.log("[OnPlayerLeaveBoard] - Board is not existed: " + error);
     }
 
@@ -190,10 +190,10 @@ module.exports.getListBoard = async function(req, res, next)
 {
     try {
         const listBoard = await Board.find({}).exec();
-        res.status(StatusResponseConfig.Ok).send(listBoard);
+        res.status(StatusConstant.Ok).send(listBoard);
         console.log(`[GetListBoard] - Success: ${listBoard}`);
     }catch(error) {
-        res.status(StatusResponseConfig.Error).send({message: error});
+        res.status(StatusConstant.Error).send({message: error});
         console.log(`[GetListBoard] - Error: ${error}`);
     }
 };
