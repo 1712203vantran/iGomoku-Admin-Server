@@ -70,14 +70,14 @@ const configSocketIO = (io) =>{
         //nhận tin nhắn và gửi cho những người khác trong phòng
         socket.on(EVENT_NAMES.MSG_FROM_CLIENT, (data)=>{
             const dataRevice = JSON.parse(data);
-            console.log(`[MESSAGE]: ${data}`);
+            //console.log(`[MESSAGE]: ${data}`);
             socket.to(dataRevice.boardID).emit(EVENT_NAMES.MSG_TO_CLIENT, JSON.stringify(dataRevice));
         });
 
         //nhận bước di chuyển và gửi cho những người khác trong phòng
         socket.on(EVENT_NAMES.STEP_FROM_CLIENT, (data)=>{
             const dataRevice = JSON.parse(data);
-            console.log(`[Step]: ${data}`);
+            //.log(`[Step]: ${data}`);
             socket.to(dataRevice.boardID).emit(EVENT_NAMES.STEP_TO_CLIENT, JSON.stringify(dataRevice));
         });
 
