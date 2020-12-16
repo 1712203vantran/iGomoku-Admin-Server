@@ -183,7 +183,7 @@ module.exports.unFriend = async function(req, res, next)
  */
 module.exports.getListFriend = async function(req, res, next)
 {
-    const userId = req.query.userId;
+    const userId = req.body.userId;
     
     // id is not valid
     if(!ObjectId.isValid(userId) ){
@@ -195,7 +195,17 @@ module.exports.getListFriend = async function(req, res, next)
     try {
         const listFriend_1 = await Friend.find({"user01": userId}).exec();
         const listFriend_2 = await Friend.find({"user02": userId}).exec();
-        const listFriend = listFriend_1.concat(listFriend_2);
+        const listFriend = [];
+
+        for(var i = 0; i < listFriend_1.length; i++){
+            var others = await Account.findById(listFriend_1[i]['user02']);
+            listFriend.push(others);
+        }
+
+        for(var i = 0; i < listFriend_2.length; i++){
+            var others = await Account.findById(listFriend_2[i]['user01']);
+            listFriend.push(others);
+        }
 
         res.status(StatusResponseConfig.Ok).send(listFriend);
         console.log(`[GetListFriend] - Success: ${listFriend}`);

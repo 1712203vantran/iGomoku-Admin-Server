@@ -53,7 +53,7 @@ const AuthMiddleware = require('./middlewares/Auth.Middleware');
 // Use router
 app.use('/auth', AuthRoute);
 app.use('/admin', AuthMiddleware, AdminRoute);
-app.use('/user',  AuthMiddleware, UserRoute);
+app.use('/user', UserRoute);
 app.use('/board', BoardRoute);
 app.use('/search', SearchRoute);
 app.use('/iGomoku', iGomokuRoute);
