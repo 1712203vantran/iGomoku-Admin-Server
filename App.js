@@ -4,7 +4,7 @@ const http = require("http");
 const cors = require('cors');
 const app = express();
 const logger = require('morgan');
-const configSocketIO = require("./config/SocketIO.Cfg");
+const passport = require('passport');
 const mongoDBConnnection = require('./db/mongoDB');
 
 const PORT = process.env.PORT || 8000;
@@ -12,7 +12,8 @@ const PORT = process.env.PORT || 8000;
 //load from .en file
 require('dotenv/config');
 
-//socket.io initial  
+//socket.io initial 
+const configSocketIO = require("./config/SocketIO.Cfg"); 
 const server = http.createServer(app);
 
 //socket.io config
@@ -47,13 +48,14 @@ const iGomokuRoute = require('./routers/iGomoku.R');
 
 
 // Import Middlewares
-const AuthMiddleware = require('./middlewares/Auth.Middleware');
-
+//const AuthMiddleware = require('./middlewares/Auth.Middleware');
+app.use(passport.initialize());
+require('./middlewares/Passport-jwt.Middleware');
 
 // Use router
 app.use('/auth', AuthRoute);
-app.use('/admin', AuthMiddleware, AdminRoute);
-app.use('/user', UserRoute);
+app.use('/admin', passport.authenticate('jwt', { session: false }), AdminRoute);
+app.use('/user', passport.authenticate('jwt', { session: false }), UserRoute);
 app.use('/board', BoardRoute);
 app.use('/search', SearchRoute);
 app.use('/iGomoku', iGomokuRoute);
