@@ -1,27 +1,34 @@
 const mongoose = require('mongoose');
 
+const HistoryStepSchema = mongoose.Schema({
+    step:{
+        type: Array,
+        require: true,
+    }
+});
+
 // History Game Scheme
 /*
-    - user: history of user
-    - enemy: enemy of user
+    - owner: userID
+    - player: enemyID
     - board: String (id of board)
     - created time: date time
     - game status: int (1-win, 2-lose, 3-tie)
-    - timePlaying: int (seconds)
-    - elo: int
-    - xu: int
+    - history: Array[HistoryStep] (history steps)
+    - eloGot: int (getted elo of winer)
+    - winningLine: Array (position of elements in the winning line) 
 */ 
 
-const HistoryGameScheme = mongoose.Schema({
-    user: {
+const HistoryGameSchema = mongoose.Schema({
+    ownerID: {
         type: String,
         required: true
     },
-    enemy: {
+    playerID: {
         type: String,
         required: true
     },
-    board: {
+    boardID: {
         type: String,
         required: true
     },
@@ -33,18 +40,21 @@ const HistoryGameScheme = mongoose.Schema({
         type: Number,
         required: true
     },
-    timePlaying: {
+    history: {
+        type: [HistoryStepSchema],
+        
+    },
+    eloGot: {
         type: Number,
         required: true
     },
-    xu: {
-        type: Number,
-        required: true
-    },
-    elo: {
-        type: Number,
-        required: true
+    winningLine: {
+        type: Array,
+        default: [],
     }
 });
 
-module.exports = mongoose.model('HistoryGame', HistoryGameScheme);
+
+
+
+module.exports = mongoose.model('HistoryGame', HistoryGameSchema);;

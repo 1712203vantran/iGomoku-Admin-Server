@@ -2,7 +2,7 @@ const Board = require('../models/Board.M');
 const Utils = require('../utils/Utils');
 const StatusConstant = require('../config/StatusResponseConfig');
 const BoardConstants = require('../config/Board.Cfg');
-
+const History = require('../models/HistoryGame.M');
 /*
     CREATE BOARD
     - userId: string
@@ -197,3 +197,40 @@ module.exports.getListBoard = async function(req, res, next)
         console.log(`[GetListBoard] - Error: ${error}`);
     }
 };
+
+/*
+    POST HISTORY GAME
+    sample: 
+    -history:{
+        ownerID: 'String',
+        playerID: 'String',
+        boardID: 'String',
+        gameStatus: 0,
+        eloGot: 200,
+        winningLine:[Array],
+        history: [[Array],[Array],[Array],[Array],[Array],.....]
+    }
+*/
+module.exports.saveHistoryGame = async function(req,res,next) {
+    //get history from body of POST request
+    const receiveData = req.body;
+    
+    //config type of hitory to type in schema
+    receiveData.history = Array.from(receiveData.history).map(data =>{
+        return {
+            step: data
+        };
+    })
+    
+    //save data
+    try {
+        const newHistory = new History(receiveData);
+
+        const result =  await newHistory.save();
+        res.status(StatusConstant.Ok).send(result);
+        console.log(`[SaveHitory] - Success: ${result}`);
+    } catch (error) {
+        res.status(StatusConstant.Error).send({message: error});
+        console.log(`[SaveHstory] - Error: ${error}`);
+    }
+}

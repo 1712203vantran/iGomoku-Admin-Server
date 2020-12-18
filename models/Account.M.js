@@ -8,9 +8,12 @@ const Utils = require('../utils/Utils');
     - Fullname: String
     - Email: String
     - Permission: int (0-user, 1-admin)
-    - Xu: unsigned int (money in game)
+    - elo: int (ranking)
     - account status: unsigned int (0-normal, 1-blocked)
     - createdDate: date
+    - matches: int (number of games played)
+    - winningGames: int (number of winning game)
+    - autoMatch: Boolean (auto match oppnent)
 */ 
 
 const AccountSchema = mongoose.Schema({
@@ -38,10 +41,6 @@ const AccountSchema = mongoose.Schema({
         type: Date,
         default: new Date()
     },
-    xu: {
-        type: Number,
-        default: 100
-    },
     elo: {
         type: Number,
         default: 600
@@ -49,6 +48,18 @@ const AccountSchema = mongoose.Schema({
     accountStatus: {
         type: Number,
         default: 0
+    },
+    matches: {
+        type: Number,
+        default: 0
+    },
+    winningGame: {
+        type: Number,
+        default: 0,
+    },
+    autoMatch: {
+        type: Boolean,
+        default: false,
     }
 });
 

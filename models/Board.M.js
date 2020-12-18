@@ -8,6 +8,9 @@ const BoardConstants = require('../config/Board.Cfg');
     - board name: String
     - created time: date time
     - board status: int (1-waiting, 2-in game, 3-in result)
+    - isPrivate: Boolean (require password to join board,0: public, 1: private)
+    - password: String ( password of board)
+    - watchers: Array (number of user watch this game) 
 */ 
 
 const BoardScheme = mongoose.Schema({
@@ -31,6 +34,18 @@ const BoardScheme = mongoose.Schema({
     boardStatus: {
         type: Number,
         default: BoardConstants.WATING_STATUS
+    },
+    isPrivate: {
+        type: Boolean,
+        default: false,
+    },
+    password: {
+        type: String,
+        default: ""
+    },
+    watchers: {
+        type: Array,
+        default: []
     }
 });
 

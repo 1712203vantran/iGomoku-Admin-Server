@@ -22,3 +22,14 @@ CÓ GỬI KÈM 'token' trong mỗi req
 - userId
 
 7. list board (board/list) GET
+
+8.save board's hitory (board/save-history) POST
+-history:{
+        ownerID: 'String',
+        playerID: 'String',
+        boardID: 'String',
+        gameStatus: 0,
+        eloGot: 200,
+        winningLine:[Array],
+        history: [[Array],[Array],[Array],[Array],[Array],.....]
+}

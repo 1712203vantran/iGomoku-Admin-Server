@@ -16,4 +16,6 @@ router.post('/on-leave', BoardController.playerLeaveBoard);
 
 router.get('/list', BoardController.getListBoard);
 
+router.post('/save-history', BoardController.saveHistoryGame);
+
 module.exports = router;
