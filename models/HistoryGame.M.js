@@ -17,6 +17,7 @@ const HistoryStepSchema = mongoose.Schema({
     - history: Array[HistoryStep] (history steps)
     - eloGot: int (getted elo of winer)
     - winningLine: Array (position of elements in the winning line) 
+    - messages: Array (message sended when play game)
 */ 
 
 const HistoryGameSchema = mongoose.Schema({
@@ -49,6 +50,10 @@ const HistoryGameSchema = mongoose.Schema({
         required: true
     },
     winningLine: {
+        type: Array,
+        default: [],
+    },
+    messages: {
         type: Array,
         default: [],
     }

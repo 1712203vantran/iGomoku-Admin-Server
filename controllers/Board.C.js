@@ -3,6 +3,7 @@ const Utils = require('../utils/Utils');
 const StatusConstant = require('../config/StatusResponseConfig');
 const BoardConstants = require('../config/Board.Cfg');
 const History = require('../models/HistoryGame.M');
+const Account = require("../models/Account.M");
 /*
     CREATE BOARD
     - userId: string
@@ -14,9 +15,10 @@ module.exports.createBoard = async function (req, res, next) {
    
     const createdBoard = new Board({
         owner: userId,
-        boardName: boardName
+        boardName: boardName,
+        boardStatus: 1 //watting
     });
-    console.log(createdBoard);
+    
     try {
         const savedBoard = await createdBoard.save();
         res.status(StatusConstant.Ok).send(savedBoard);
@@ -88,8 +90,8 @@ module.exports.findBoardByName = async function (req, res, next) {
     - Board Id: String
  */
 module.exports.playerJoinBoard = async function (req, res, next) {
-    const playerId = req.body.userId;
-    const boardId = req.body.boardId;
+    const playerId = req.body.userID;
+    const boardId = req.body.boardID;
 
     try {
         const joinBoard = await Board.updateOne(
@@ -97,8 +99,10 @@ module.exports.playerJoinBoard = async function (req, res, next) {
             { $set: 
                 {
                     player: playerId,
+                    boardStatus: 2,
                 }
-            }
+            },
+            
         );
         res.status(StatusConstant.Ok).send(joinBoard);
         console.log(`[PlayerJoinBoard] - BoardId ${boardId} - PlayerId ${playerId}`);
@@ -199,6 +203,31 @@ module.exports.getListBoard = async function(req, res, next)
 };
 
 /*
+    GET INFO OF TWO USER IN BOARD
+    //params: BoardID
+*/ 
+
+module.exports.getInfoOfTwoPlayer = async function(req,res,next) {
+    const boardID = req.params.boardID;
+
+    //get board info by boardID
+    try {   
+        const board = await Board.findById({_id: boardID}).exec();
+        //find owner info and player info ID in board
+        board.owner = await Account.findById({_id: board.owner}).exec();
+
+        board.player = await Account.findById({_id: board.player}).exec();
+
+        res.status(StatusConstant.Ok).send(board);
+        console.log(`[GetBoard] - Success: ${board}`);
+    } catch (error) {
+        res.status(StatusConstant.Error).send({message: error});
+        console.log(`[GetBoard] - Error: ${error}`);
+    }
+
+};
+
+/*
     POST HISTORY GAME
     sample: 
     -history:{
@@ -209,6 +238,7 @@ module.exports.getListBoard = async function(req, res, next)
         eloGot: 200,
         winningLine:[Array],
         history: [[Array],[Array],[Array],[Array],[Array],.....]
+        message: [Array]
     }
 */
 module.exports.saveHistoryGame = async function(req,res,next) {
@@ -233,4 +263,4 @@ module.exports.saveHistoryGame = async function(req,res,next) {
         res.status(StatusConstant.Error).send({message: error});
         console.log(`[SaveHstory] - Error: ${error}`);
     }
-}
+};

@@ -7,9 +7,9 @@ const EVENT_NAMES = {
     RESPONSE_USER_LIST: "response-list-online-user",
     SIGN_OUT: 'sign-out',
     DISCONNECT: "disconnect",
-    INVITE_JOIN_MATCH: "invite-player",
-    ACCEPT_INVITE: "accept-invite",
-    START_GAME: "start-game",
+    INVITE_JOIN_MATCH: "invite_player",
+    ACCEPT_INVITE: "accept_invite",
+    START_GAME: "start_game",
     MSG_FROM_CLIENT: "send_message",
     MSG_TO_CLIENT: "receive_message",
     STEP_FROM_CLIENT:"send_position",
@@ -54,17 +54,17 @@ const configSocketIO = (io) =>{
         });
         //gửi lời mời tham gia trận đấu thơi người chơi chỉ định
         socket.on(EVENT_NAMES.INVITE_JOIN_MATCH, (info) =>{
-            const dataRevice = JSON.parse(info);
-            //console.log({dataRevice});
-            io.to(dataRevice.player.socketID).emit(EVENT_NAMES.INVITE_JOIN_MATCH, JSON.stringify(dataRevice));
+            const dataRevice = info;
+            console.log(`[Send invite]: ${dataRevice}`);
+            io.to(dataRevice.socketID).emit(EVENT_NAMES.INVITE_JOIN_MATCH, JSON.stringify(dataRevice));
             socket.join(dataRevice.boardID);
         });
 
         //chập nhận lời mời tham gia phòng chơi
         socket.on(EVENT_NAMES.ACCEPT_INVITE, (info) =>{
             //console.log({info});
-            socket.to(info.boardId).emit(EVENT_NAMES.START_GAME, (info.boardID));
-            socket.join(info.boardId);
+            socket.to(info.boardID).emit(EVENT_NAMES.START_GAME, (info.boardID));
+            socket.join(info.boardID);
         });
 
         //nhận tin nhắn và gửi cho những người khác trong phòng

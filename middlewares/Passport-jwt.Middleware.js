@@ -10,7 +10,7 @@ passport.use('jwt', new JWTStrategy({
     secretOrKey   : config.secret,
     },
     function (jwtPayload, done) {
-        console.log({jwtPayload});
+        
         return done(null, jwtPayload);
     }
 ));
