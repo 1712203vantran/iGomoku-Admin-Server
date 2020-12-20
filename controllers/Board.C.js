@@ -214,12 +214,20 @@ module.exports.getInfoOfTwoPlayer = async function(req,res,next) {
     try {   
         const board = await Board.findById({_id: boardID}).exec();
         //find owner info and player info ID in board
-        board.owner = await Account.findById({_id: board.owner}).exec();
+        const ownerID = board.owner;
+        const playerID = board.player;
+        const boardInfo = await Object.assign({},board.toJSON(), {
+            ...board,
+            owner: {},
+            player: {},
+        });
+        
+        boardInfo.owner = await Account.findById({_id: ownerID}).exec();
+       
+        boardInfo.player = await Account.findById({_id: playerID}).exec();
 
-        board.player = await Account.findById({_id: board.player}).exec();
-
-        res.status(StatusConstant.Ok).send(board);
-        console.log(`[GetBoard] - Success: ${board}`);
+        res.status(StatusConstant.Ok).send(boardInfo);
+        console.log(`[GetBoard] - Success ${boardID}`);
     } catch (error) {
         res.status(StatusConstant.Error).send({message: error});
         console.log(`[GetBoard] - Error: ${error}`);

@@ -9,7 +9,7 @@ const Utils = require('../utils/Utils');
     - Email: String
     - Permission: int (0-user, 1-admin)
     - elo: int (ranking)
-    - account status: unsigned int (0-normal, 1-blocked)
+    - account status: unsigned int (-1: not-vetify, 0-normal, 1-blocked)
     - createdDate: date
     - matches: int (number of games played)
     - winningGames: int (number of winning game)
@@ -47,7 +47,7 @@ const AccountSchema = mongoose.Schema({
     },
     accountStatus: {
         type: Number,
-        default: 0
+        default: -1
     },
     matches: {
         type: Number,
