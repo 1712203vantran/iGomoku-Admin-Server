@@ -2,6 +2,7 @@ const Board = require('../models/Board.M');
 const Utils = require('../utils/Utils');
 const StatusConstant = require('../config/StatusResponseConfig');
 const BoardConstants = require('../config/Board.Cfg');
+
 const History = require('../models/HistoryGame.M');
 const Account = require("../models/Account.M");
 /*
@@ -16,7 +17,7 @@ module.exports.createBoard = async function (req, res, next) {
     const createdBoard = new Board({
         owner: userId,
         boardName: boardName,
-        boardStatus: 1 //watting
+        boardStatus: BoardConstants.WATING_STATUS //watting
     });
     
     try {
@@ -99,7 +100,7 @@ module.exports.playerJoinBoard = async function (req, res, next) {
             { $set: 
                 {
                     player: playerId,
-                    boardStatus: 2,
+                    boardStatus: BoardConstants.INGAME_STATUS,
                 }
             },
             
@@ -194,8 +195,9 @@ module.exports.getListBoard = async function(req, res, next)
 {
     try {
         const listBoard = await Board.find({}).exec();
-        res.status(StatusConstant.Ok).send(listBoard);
-        console.log(`[GetListBoard] - Success: ${listBoard}`);
+        const listBoardInProgress = listBoard.filter(board=>board.boardStatus !== BoardConstants.INRESULT_STATUS);
+        res.status(StatusConstant.Ok).send(listBoardInProgress);
+        console.log(`[GetListBoard] - Success: length ${listBoardInProgress.length}`);
     }catch(error) {
         res.status(StatusConstant.Error).send({message: error});
         console.log(`[GetListBoard] - Error: ${error}`);
