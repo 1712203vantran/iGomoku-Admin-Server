@@ -7,37 +7,22 @@ let clients = [];
 const listOnlineUser = {
     //get user's info by userID and add new user to list online user
     //input: user.userID ,  socket: socket of client 
+    addNewUserConnect: async (user, socketID) =>{
+      
+        const client = Object.assign({},user.toJSON());
+        client.socketID = socketID;
+        
+        console.log(client);
+        checkEsixts = (user) => !user._id.equals(client._id);
 
-    addNewUserConnect: async (user, socket) =>{
-        try {
-            const client = await Account.findById(user.userID).exec();
-           
-            const clientObj = {
-                permission: client.permission,
-                username: client.username,
-                fullname: client.fullname,
-                _id: client._id,
-                elo: client.elo,
-                coin: client.xu,
-                socketID: socket.id,
-            }
+        if (clients.length === 0)
+        {
+            clients.push(client);
             
-            checkEsixts = (user) => !user._id.equals(clientObj._id);
-
-            if (clients.length === 0)
-            {
-                clients.push(clientObj);
-                
-            }
-            else if (clients.every(checkEsixts))
-            {
-                clients.push(clientObj); 
-            }
-
-            return StatusResponseConfig.Ok;
-        } catch (error) {
-            console.log(error);
-            return StatusResponseConfig.Error;
+        }
+        else if (clients.every(checkEsixts))
+        {
+            clients.push(client); 
         }
     },
 

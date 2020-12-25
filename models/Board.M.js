@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const BoardConstants = require('../config/Board.Cfg');
+const Account = require('./Account.M');
 
 // Board Scheme
 /*
@@ -13,14 +14,14 @@ const BoardConstants = require('../config/Board.Cfg');
     - watchers: Array (number of user watch this game) 
 */ 
 
-const BoardScheme = mongoose.Schema({
+const BoardSchema = mongoose.Schema({
     owner: {
-        type: String,
-        required: true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Account",
     },
     player: {
-        type: String,
-        required: false,
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Account",
         default: null
     },
     boardName: {
@@ -49,4 +50,36 @@ const BoardScheme = mongoose.Schema({
     }
 });
 
-module.exports = mongoose.model('Board', BoardScheme);
+//mapping boardId to account everytime create new board
+BoardSchema.pre('save', async function(next){
+   try {
+    console.log(this);
+    const account = await Account.findById({_id: this.owner});
+
+    account.matches.push(this._id);
+    await account.save();
+    next();
+   } catch (error) {
+       console.log({error});
+       next(error);
+   }
+
+});
+
+BoardSchema.pre("update", async function(next){
+    try {
+        console.log(this);
+        const account = await Account.findById({_id: this.player});
+    
+        account.matches.push(this._id);
+        await account.save();
+        next();
+       } catch (error) {
+           console.log({error});
+           next(error);
+       }
+    
+});
+
+
+module.exports = mongoose.model('Board', BoardSchema);

@@ -1,10 +1,9 @@
 const Account = require('../models/Account.M');
 const jwtCfg = require('../config/JWT.Cfg');
 const jwt = require("jsonwebtoken");
-
 // config
 const StatusResponseConfig = require('../config/StatusResponseConfig');
-const { findById } = require('../models/Account.M');
+const { realTimeActions } = require('../socket.io');
 
 /*
     SIGN IN
@@ -17,6 +16,7 @@ module.exports.signIn = async function(req, res, next)
     const username = req.body.username;
     const password = req.body.password;
     const permission = parseInt(req.body.permission);
+    const socketID = req.body.socketID;
 
     try {
         const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
@@ -25,12 +25,16 @@ module.exports.signIn = async function(req, res, next)
         }else{// Login successfully
             var payload = { userID: account._id };
             var token = jwt.sign(payload, jwtCfg.secret);
+            //realtime when new user signin to server
+            realTimeActions.updateOnlineUserList(account, socketID);
+
             res.status(StatusResponseConfig.Ok).json({
                 token: token,
                 account: account
               });
         }
     }catch(error) {
+        console.log({error});
         res.status(StatusResponseConfig.Error).send({message: error});
     }
 };
@@ -40,6 +44,7 @@ module.exports.signInGoogle = async function(req, res, next)
     const username = req.body.username;
     const fullname = req.body.fullname;
     const email = req.body.email;
+    const socketID = req.body.socketID;
     //const token = req.body.token;
     const password = "google";
     const permission = parseInt(req.body.permission);
@@ -81,6 +86,8 @@ module.exports.signInGoogle = async function(req, res, next)
         const savedAccount = await newAccount.save();
         var payload = { userID: savedAccount._id };
         var token = jwt.sign(payload, jwtCfg.secret);
+        //cập nhật danh sách người dùng đang online
+        realTimeActions.updateOnlineUserList(savedAccount, socketID);
 
         res.status(StatusResponseConfig.Ok).json({
             token: token,
@@ -97,6 +104,7 @@ module.exports.signInFacebook = async function(req, res, next)
     const fullname = req.body.fullname;
     const email = req.body.email;
     //const token = req.body.token;
+    const socketID = req.body.socketID;
     const password = "facebook";
     const permission = parseInt(req.body.permission);
 
@@ -137,6 +145,8 @@ module.exports.signInFacebook = async function(req, res, next)
         const savedAccount = await newAccount.save();
         var payload = { userID: savedAccount._id };
         var token = jwt.sign(payload, jwtCfg.secret);
+         //cập nhật danh sách người dùng đang online
+         realTimeActions.updateOnlineUserList(savedAccount, socketID);
 
         res.status(StatusResponseConfig.Ok).json({
             token: token,

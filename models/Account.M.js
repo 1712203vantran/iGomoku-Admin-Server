@@ -49,14 +49,14 @@ const AccountSchema = mongoose.Schema({
         type: Number,
         default: -1
     },
-    matches: {
-        type: Number,
-        default: 0
-    },
-    winningGame: {
-        type: Number,
-        default: 0,
-    },
+    matches: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Board",
+    }],
+    winningGame: [{
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Board",
+    }],
     autoMatch: {
         type: Boolean,
         default: false,

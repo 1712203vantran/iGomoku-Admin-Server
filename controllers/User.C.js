@@ -7,7 +7,6 @@ const FriendInvitation = require('../models/FriendInvitation.M');
 // config
 const StatusResponseConfig = require('../config/StatusResponseConfig');
 const AccountConstants = require('../config/Account.Cfg');
-const { createCollection } = require('../models/Account.M');
 
 /*
     USER SEND MAKE FRIEND REQUEST

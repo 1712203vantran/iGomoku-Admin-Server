@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const Account = require('./Account.M');
 
 // Friend Scheme
 /*
@@ -21,5 +22,18 @@ const FriendSchema = mongoose.Schema({
         default: new Date()
     }
 });
+
+
+// FriendSchema.pre("save", function async (next){
+//     try {
+//         const {user01, user02} = this;
+
+//         next();
+//     } catch (error) 
+//     {
+//         console.log(error);
+//         next(error);    
+//     }
+// });
 
 module.exports = mongoose.model('Friend', FriendSchema);

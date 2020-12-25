@@ -6,23 +6,17 @@ const app = express();
 const logger = require('morgan');
 const passport = require('passport');
 const mongoDBConnnection = require('./db/mongoDB');
+const realtime = require('./socket.io');
 
 const PORT = process.env.PORT || 8000;
 
 //load from .en file
-require('dotenv/config');
+require('dotenv').config();
 
-//socket.io initial 
-const configSocketIO = require("./config/SocketIO.Cfg"); 
+//socket.io initial  
 const server = http.createServer(app);
 
-//socket.io config
-const io = require("socket.io")(server, {
-    cors: true,
-    //origins: ["http://127.0.0.1:3000"],
-  });
-
-configSocketIO(io);
+realtime.configSocketIO(server);
 
 // body-parser
 app.use(bodyParser.urlencoded({ extended: true }));

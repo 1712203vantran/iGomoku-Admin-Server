@@ -5,6 +5,7 @@ const BoardConstants = require('../config/Board.Cfg');
 
 const History = require('../models/HistoryGame.M');
 const Account = require("../models/Account.M");
+const { populate } = require('../models/Account.M');
 /*
     CREATE BOARD
     - userId: string
@@ -214,22 +215,24 @@ module.exports.getInfoOfTwoPlayer = async function(req,res,next) {
 
     //get board info by boardID
     try {   
-        const board = await Board.findById({_id: boardID}).exec();
+        const board = await Board.findById({_id: boardID}).
+                                    populate({path: "owner",select: "fullname"}).
+                                    populate({path: "player",select: "fullname"}).exec();
         //find owner info and player info ID in board
-        const ownerID = board.owner;
-        const playerID = board.player;
-        const boardInfo = await Object.assign({},board.toJSON(), {
-            ...board,
-            owner: {},
-            player: {},
-        });
+        // const ownerID = board.owner;
+        // const playerID = board.player;
+        // const boardInfo = await Object.assign({},board.toJSON(), {
+        //     ...board,
+        //     owner: {},
+        //     player: {},
+        // });
         
-        boardInfo.owner = await Account.findById({_id: ownerID}).exec();
+        // boardInfo.owner = await Account.findById({_id: ownerID}).exec();
        
-        boardInfo.player = await Account.findById({_id: playerID}).exec();
+        // boardInfo.player = await Account.findById({_id: playerID}).exec();
 
-        res.status(StatusConstant.Ok).send(boardInfo);
-        console.log(`[GetBoard] - Success ${boardID}`);
+        res.status(StatusConstant.Ok).send(board);
+        console.log(`[GetBoard] - Success ${board}`);
     } catch (error) {
         res.status(StatusConstant.Error).send({message: error});
         console.log(`[GetBoard] - Error: ${error}`);
