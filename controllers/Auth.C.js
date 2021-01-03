@@ -213,18 +213,14 @@ module.exports.signUp = async function(req, res, next)
 module.exports.updateProfile = async function(req, res, next)
 {
     const id = req.body.userId;
-    const username = req.body.username;
-    const password = req.body.password;
     const fullname = req.body.fullname;
-    const email = req.body.email;
 
     try {
         const updatedProfile = await Account.updateOne(
             {_id: id},
             { $set: 
                 {
-                    fullname: fullname,
-                    email: email,
+                    fullname: fullname
                 }
             }
         );
@@ -237,7 +233,7 @@ module.exports.updateProfile = async function(req, res, next)
 
 module.exports.getProfile = async function(req, res, next)
 {
-    const id = req.body.userId;
+    const id = req.query.userId;
 
     try {
         const profile = await Account.findById(id);
