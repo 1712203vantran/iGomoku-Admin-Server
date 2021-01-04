@@ -5,6 +5,7 @@ const Friend = require('../models/Friend.M');
 const Payment = require('../models/Payment.M');
 const History = require('../models/HistoryGame.M');
 const FriendInvitation = require('../models/FriendInvitation.M');
+const Utils = require('../utils/Utils');
 
 // config
 const StatusResponseConfig = require('../config/StatusResponseConfig');
@@ -257,12 +258,36 @@ module.exports.getListHistory = async function(req, res, next)
         const listHistory = [];
 
         for(var i = 0; i < listHistory_1.length; i++){
-            listHistory.push(listHistory_1[i]);
+            var element = {};
+            element._id =  listHistory_1[i]._id;
+            element.me_fullname = (await Account.findById(listHistory_1[i].ownerID))["fullname"];
+            element.me_id = listHistory_1[i].ownerID;
+            element.enemy_fullname = (await Account.findById(listHistory_1[i].playerID))["fullname"];
+            element.enemy_id = listHistory_1[i].playerID;
+            element.result = listHistory_1[i].result === 1 ? 1 : 0;
+            element.chats = listHistory_1[i].messages;
+            element.stepHistory = listHistory_1[i].history;
+            element.time = Utils.formatDate(listHistory_1[i].createdTime);
+
+            listHistory.push(element);
         }
 
         for(var i = 0; i < listHistory_2.length; i++){
-            listHistory.push(listHistory_2[i]);
+            var element = {};
+            element._id =  listHistory_2[i]._id;
+            element.enemy_fullname = await Account.findById(listHistory_2[i].ownerID).exec()['fullname'];
+            element.enemy_id = listHistory_2[i].ownerID;
+            element.me_fullname = await Account.findById(listHistory_2[i].playerID).exec()['fullname'];
+            element.me_id = listHistory_2[i].playerID;
+            element.result = listHistory_2[i].result === 2 ? 1 : 0;
+            element.chats = listHistory_2[i].messages;
+            element.stepHistory = listHistory_2[i].history;
+            element.time =  Utils.formatDate(listHistory_2[i].createdTime);
+
+            listHistory.push(element);
         }
+
+       // console.log(listHistory);
 
         res.status(StatusResponseConfig.Ok).send(listHistory);
         console.log(`[GetListHistory] - Success: ${listHistory}`);
