@@ -10,6 +10,7 @@ const Utils = require('../utils/Utils');
 // config
 const StatusResponseConfig = require('../config/StatusResponseConfig');
 const AccountConstants = require('../config/Account.Cfg');
+const Board = require('../models/Board.M');
 
 /*
     USER SEND MAKE FRIEND REQUEST
@@ -294,5 +295,56 @@ module.exports.getListHistory = async function(req, res, next)
     }catch(error) {
         res.status(StatusResponseConfig.Error).send({message: error});
         console.log(`[GetListHistory] - Error: ${error}`);
+    }
+};
+
+/*
+    GET HISTORY
+    - History Id: string
+ */
+module.exports.getHistory = async function(req, res, next)
+{
+    const historyID = req.query.historyID;
+    const userID = req.user.userID;
+
+    // id is not valid
+    if(!ObjectId.isValid(historyID) ){
+        res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
+        console.log(`[GetHistory] - Wrong Id - HistoryID: ${historyID}`);
+        return;
+    }
+
+    try {
+        const history = await History.findById(historyID);
+        const result = {};
+
+        if(history['ownerID'] === userID){
+            result.enemy_fullname = (await Account.findById(history.playerID))['fullname'];
+            result.enemy_id = history.ownerID;
+            result.me_fullname = (await Account.findById(history.ownerID))['fullname'];
+            result.me_id = history.playerID;
+            result.result = history.result === 1 ? 1 : 0;
+        }
+        else{
+            result.enemy_fullname = (await Account.findById(history.ownerID))['fullname'];
+            result.enemy_id = history.ownerID;
+            result.me_fullname = (await Account.findById(history.playerID))['fullname'];
+            result.me_id = lhistory.playerID;
+            result.result = history.result === 2 ? 1 : 0;
+        }
+
+        result.chats = history.messages;
+        result.stepHistory = history.history;
+        result.time =  Utils.formatDate(history.createdTime);
+        result.eloGot = history.eloGot;
+        result.boardName = (await Board.findById(history.boardID))['boardName'];
+
+        console.log("result ne: " + JSON.stringify(result));
+
+        res.status(StatusResponseConfig.Ok).send(result);
+        console.log(`[GetHistory] - Success: ${history}`);
+    }catch(error) {
+        res.status(StatusResponseConfig.Error).send({message: error});
+        console.log(`[GetHistory] - Error: ${error}`);
     }
 };
