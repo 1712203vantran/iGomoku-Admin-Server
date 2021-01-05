@@ -52,10 +52,12 @@ const AccountSchema = mongoose.Schema({
     matches: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Board",
+        default: []
     }],
     winningGame: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: "Board",
+        default: []
     }],
     autoMatch: {
         type: Boolean,

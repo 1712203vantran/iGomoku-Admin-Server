@@ -1,7 +1,12 @@
 const EVENT_NAMES =require('../config/SocketIO.Cfg');
 const socketIo = require("socket.io");
-const listOnlineUser = require('../db/ListOnlineUser');
-const StatusResponseConfig = require('../config/StatusResponseConfig');
+const ListOnlineUser = require('./ListOnlineUser');
+const Account = require('../models/Account.M');
+const AuthUtils = require('../utils/Auth.Utils');
+//const StatusContans = require('../config/StatusResponseConfig');
+
+const JWTCfg = require('../config/JWT.Cfg');
+
 
 let io = null;
 
@@ -18,50 +23,63 @@ const configSocketIO = (server) =>{
     io.on(EVENT_NAMES.CONNECTION, (socket) => {
         console.log(`Socket [${socket.id}]: connected.`);
 
-        //event lấy danh sách các người chơi đang online
-        socket.on(EVENT_NAMES.REQUEST_USER_LIST, async (user)=>{
+        //user already login before(has jwt token), open another tab
+        socket.on(EVENT_NAMES.REQUEST_USER_ONLINE, async ({jwtToken})=>{
 
-            const listUser = listOnlineUser.getListOnlineUser();
-            console.log(`[Online user]:  ${listUser.length}`);
-            //thông báo tới tất cả các sockt đang kết nối người dùng đã đăng nhập
-            io.sockets.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
+            // const listUser = ListOnlineUser.getListOnlineUser();
+            // console.log(`[Online user]:  ${listUser.length}`);
+            // //thông báo tới tất cả các sockt đang kết nối người dùng đã đăng nhập
+            // io.sockets.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
+            try{    
+                const decoded = await AuthUtils.verifyJwtToken(jwtToken, JWTCfg.secret);              
+                const user = await Account.findById({_id: decoded.userID}).exec();
+                if (user)
+                {
+                    const isSuccess = ListOnlineUser.addNewUserConnect(user, socket.id);
+                    if(isSuccess)
+                    {
+                        //thông báo tới tất cả các socket đang kết nối người dùng đã đăng nhập
+                        io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {user});
+                    }
+                }
+            }catch(error)
+            {
+                console.error(error);
+            }
+           
             // if (user.userID !== "0")
-            // {
-            //     status = await listOnlineUser.addNewUserConnect(user, socket);
-            //     if (status === StatusResponseConfig.Ok)
-            //     {   
-            //         const listUser = listOnlineUser.getListOnlineUser();
-            //         console.log(`[Online user]:  ${listUser.length}`);
-            //         //thông báo tới tất cả các sockt đang kết nối người dùng đã đăng nhập
-            //         io.sockets.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
-            //     }
+            // {    
+               
             // }
             // else{
-            //     const listUser = listOnlineUser.getListOnlineUser();
+            //     const listUser = ListOnlineUser.getListOnlineUser();
             //     //người dùng ẩn danh muốn xem danh sách người choi đã đăng nhập
             //     socket.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
             // }
         });
         
         //xóa người dùng khi sign out
-        socket.on(EVENT_NAMES.SIGN_OUT, (user)=>{
+        socket.on(EVENT_NAMES.SIGN_OUT, ()=>{
             console.log(`Socket [${socket.id}]: sign out.`);
-            listOnlineUser.removeUser(user);
-
-            const listUser = listOnlineUser.getListOnlineUser();
-            socket.broadcast.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
+            const offlineUser = ListOnlineUser.getUserIDBySocketID(socket.id);
+            if (offlineUser)
+            {
+                ListOnlineUser.removeUser(socket.id);
+                console.log("signout");
+                io.emit(EVENT_NAMES.RESPONSE_USER_OFFLINE, {offlineUser});
+            }
         });
         //gửi lời mời tham gia trận đấu thơi người chơi chỉ định
-        socket.on(EVENT_NAMES.INVITE_JOIN_MATCH, (info) =>{
-            const dataReceive = info;
-            console.log(`[Send invite]: ${dataReceive.socketID}`);
-            io.to(dataReceive.socketID).emit(EVENT_NAMES.INVITE_JOIN_MATCH, JSON.stringify(dataRevice));
-            socket.join(dataReceive.boardID);
-        });
+        // socket.on(EVENT_NAMES.INVITE_JOIN_MATCH, (info) =>{
+        //     const dataReceive = info;
+        //     console.log(`[Send invite]: ${dataReceive.socketID}`);
+        //     io.to(dataReceive.socketID).emit(EVENT_NAMES.INVITE_JOIN_MATCH, JSON.stringify(dataRevice));
+        //     socket.join(dataReceive.boardID);
+        // });
 
         //chập nhận lời mời tham gia phòng chơi
         socket.on(EVENT_NAMES.ACCEPT_INVITE, (info) =>{
-            //console.log({info});
+            console.log({info});
             socket.to(info.boardID).emit(EVENT_NAMES.START_GAME, (info.boardID));
             socket.join(info.boardID);
         });
@@ -83,19 +101,34 @@ const configSocketIO = (server) =>{
         //socket ngắt kết nối
         socket.on(EVENT_NAMES.DISCONNECT, () => {
             console.log(`Socket [${socket.id}]: disconnected.`);
-            //listOnlineUser.removeUser(user);
+            const userID = ListOnlineUser.getUserIDBySocketID(socket.id);
+            if (userID)
+            {
+                ListOnlineUser.removeUser(socket.id);
+                io.emit(EVENT_NAMES.RESPONSE_USER_OFFLINE, {userID});
+            }
         });
     });
 }
 
 
 const realTimeActions = {
-    
+    //realtime actions for User List
     updateOnlineUserList: (user, socketID)=>{
-        listOnlineUser.addNewUserConnect(user, socketID);
-        const listUser = listOnlineUser.getListOnlineUser();
-        io.sockets.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
+        const isSuccess = ListOnlineUser.addNewUserConnect(user, socketID);
+        if(isSuccess)
+        {
+            io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {user});
+        }   
     },
+
+    sendInviteToPlayer: (boardID,player) =>{
+        player.boardID = boardID;
+        io.to(player.socketID).emit(EVENT_NAMES.INVITE_JOIN_MATCH, JSON.stringify(player));
+        //join room 
+        //console.log(io.sockets.connected);
+        //io.sockets.socket(player.socketID).join(boardID);
+    }
 }
 
 module.exports = {
