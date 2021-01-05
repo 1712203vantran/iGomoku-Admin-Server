@@ -14,7 +14,7 @@ router.post('/on-join', BoardController.playerJoinBoard);
 
 router.post('/on-leave', BoardController.playerLeaveBoard);
 
-router.get('/list', BoardController.getListBoard);
+//router.get('/list', BoardController.getListBoard);
 
 router.get('/:boardID', BoardController.getInfoOfTwoPlayer);
 

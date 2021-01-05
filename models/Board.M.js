@@ -53,10 +53,8 @@ const BoardSchema = mongoose.Schema({
 //mapping boardId to account everytime create new board
 BoardSchema.pre('save', async function(next){
    try {
-    console.log(this);
     const account = await Account.findById({_id: this.owner});
-
-    account.matches.push(this._id);
+    await account.matches.push(this._id);
     await account.save();
     next();
    } catch (error) {
@@ -68,9 +66,8 @@ BoardSchema.pre('save', async function(next){
 
 BoardSchema.pre("update", async function(next){
     try {
-        console.log(this);
+        
         const account = await Account.findById({_id: this.player});
-    
         account.matches.push(this._id);
         await account.save();
         next();

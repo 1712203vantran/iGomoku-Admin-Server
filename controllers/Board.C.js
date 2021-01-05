@@ -2,10 +2,10 @@ const Board = require('../models/Board.M');
 const Utils = require('../utils/Utils');
 const StatusConstant = require('../config/StatusResponseConfig');
 const BoardConstants = require('../config/Board.Cfg');
-
+const {realTimeActions} = require('../socket.io');
 const History = require('../models/HistoryGame.M');
-const Account = require("../models/Account.M");
-const { populate } = require('../models/Account.M');
+
+
 /*
     CREATE BOARD
     - userId: string
@@ -14,17 +14,31 @@ const { populate } = require('../models/Account.M');
 module.exports.createBoard = async function (req, res, next) {
     const userId = req.body.userID; // user create board (owner)
     const boardName = req.body.boardName;
-   
-    const createdBoard = new Board({
+    const isPrivate = req.body.isPrivate;
+    const password = req.body.password;
+    const player = req.body.player;
+
+    const boardInfo = {
         owner: userId,
         boardName: boardName,
-        boardStatus: BoardConstants.WATING_STATUS //watting
-    });
+        boardStatus: BoardConstants.WATING_STATUS, //watting
+        isPrivate:isPrivate,
+        password: password,
+    }
+    if (typeof player!== "undefined")
+    {
+        boardInfo.player = player._id;
+    }
+    
+    const createdBoard = new Board(boardInfo);
     
     try {
         const savedBoard = await createdBoard.save();
-        res.status(StatusConstant.Ok).send(savedBoard);
         console.log(`[CreateNewBoard] - By ${userId} - Board: ${savedBoard}`);
+
+        //realtime invite for player
+        realTimeActions.sendInviteToPlayer(savedBoard._id, player);
+        return res.status(StatusConstant.Ok).send(savedBoard);
     } catch (error) {
         res.status(StatusConstant.Error).send({ message: error });
         console.log(`[CreateNewBoard] - By ${userId} - Error: ${error}`);
@@ -195,7 +209,10 @@ module.exports.playerLeaveBoard = async function (req, res, next) {
 module.exports.getListBoard = async function(req, res, next)
 {
     try {
-        const listBoard = await Board.find({}).exec();
+        const listBoard = await Board.find({})
+        .populate({path: 'owner', select:"fullname" })
+        .populate({path: 'player', select: "fullname"})
+        .exec();
         const listBoardInProgress = listBoard.filter(board=>board.boardStatus !== BoardConstants.INRESULT_STATUS);
         res.status(StatusConstant.Ok).send(listBoardInProgress);
         console.log(`[GetListBoard] - Success: length ${listBoardInProgress.length}`);
