@@ -13,7 +13,7 @@ const HistoryStepSchema = mongoose.Schema({
     - player: enemyID
     - board: String (id of board)
     - created time: date time
-    - game status: int (1-win, 2-lose, 3-tie)
+    - result: int (1-win, 2-lose, 3-tie)
     - history: Array[HistoryStep] (history steps)
     - eloGot: int (getted elo of winer)
     - winningLine: Array (position of elements in the winning line) 
@@ -37,7 +37,7 @@ const HistoryGameSchema = mongoose.Schema({
         type: Date,
         default: new Date()
     },
-    gameStatus: {
+    result: {
         type: Number,
         required: true
     },

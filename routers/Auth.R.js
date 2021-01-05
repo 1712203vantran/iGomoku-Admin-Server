@@ -10,7 +10,9 @@ router.post('/signinFacebook', AuthController.signInFacebook);
 
 router.post('/signup', AuthController.signUp);
 
-router.post('/profile', AuthController.getProfile);
+router.get('/profile', AuthController.getProfile);
+
+router.post('/edit-profile', AuthController.updateProfile);
 
 router.post('/change-password', AuthController.changePassword);
 

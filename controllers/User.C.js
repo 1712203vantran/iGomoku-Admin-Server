@@ -2,7 +2,10 @@ const mongoose = require('mongoose');
 const ObjectId = mongoose.Types.ObjectId;
 const Account = require('../models/Account.M');
 const Friend = require('../models/Friend.M');
+const Payment = require('../models/Payment.M');
+const History = require('../models/HistoryGame.M');
 const FriendInvitation = require('../models/FriendInvitation.M');
+const Utils = require('../utils/Utils');
 
 // config
 const StatusResponseConfig = require('../config/StatusResponseConfig');
@@ -146,7 +149,7 @@ module.exports.unFriend = async function(req, res, next)
     // id is not valid
     if(!ObjectId.isValid(senderId) || !ObjectId.isValid(playerId)){
         res.status(StatusResponseConfig.Error).send({message: "Wrong Id data !!"});
-        console.log(`[UnFriend] - Wrong Id: {sernder-${senderId}} {friend-${playerId}} `);
+        console.log(`[UnFriend] - Wrong Id: {sender-${senderId}} {friend-${playerId}} `);
         return;
     }
 
@@ -210,3 +213,86 @@ module.exports.getListFriend = async function(req, res, next)
     }
 };
 
+/*
+    GET LIST PAYMENT
+    - USER Id: string
+ */
+module.exports.getListPayment = async function(req, res, next)
+{
+    const userId = req.user.userID;
+    // id is not valid
+    if(!ObjectId.isValid(userId) ){
+        res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
+        console.log(`[GetListPayment] - Wrong Id - UserId: ${userId}`);
+        return;
+    }
+
+    try {
+        const listPayment = await Payment.find({"userId": userId}).exec();
+
+        res.status(StatusResponseConfig.Ok).send(listPayment);
+        console.log(`[GetListPayment] - Success: ${listPayment}`);
+    }catch(error) {
+        res.status(StatusResponseConfig.Error).send({message: error});
+        console.log(`[GetListPayment] - Error: ${error}`);
+    }
+};
+
+/*
+    GET LIST HISTORY
+    - USER Id: string
+ */
+module.exports.getListHistory = async function(req, res, next)
+{
+    const userId = req.user.userID;
+    // id is not valid
+    if(!ObjectId.isValid(userId) ){
+        res.status(StatusResponseConfig.Error).send({message: "Wrong id data !!"});
+        console.log(`[GetListHistory] - Wrong Id - UserId: ${userId}`);
+        return;
+    }
+
+    try {
+        const listHistory_1 = await History.find({"ownerID": userId}).exec();
+        const listHistory_2 = await History.find({"playerID": userId}).exec();
+        const listHistory = [];
+
+        for(var i = 0; i < listHistory_1.length; i++){
+            var element = {};
+            element._id =  listHistory_1[i]._id;
+            element.me_fullname = (await Account.findById(listHistory_1[i].ownerID))["fullname"];
+            element.me_id = listHistory_1[i].ownerID;
+            element.enemy_fullname = (await Account.findById(listHistory_1[i].playerID))["fullname"];
+            element.enemy_id = listHistory_1[i].playerID;
+            element.result = listHistory_1[i].result === 1 ? 1 : 0;
+            element.chats = listHistory_1[i].messages;
+            element.stepHistory = listHistory_1[i].history;
+            element.time = Utils.formatDate(listHistory_1[i].createdTime);
+
+            listHistory.push(element);
+        }
+
+        for(var i = 0; i < listHistory_2.length; i++){
+            var element = {};
+            element._id =  listHistory_2[i]._id;
+            element.enemy_fullname = await Account.findById(listHistory_2[i].ownerID).exec()['fullname'];
+            element.enemy_id = listHistory_2[i].ownerID;
+            element.me_fullname = await Account.findById(listHistory_2[i].playerID).exec()['fullname'];
+            element.me_id = listHistory_2[i].playerID;
+            element.result = listHistory_2[i].result === 2 ? 1 : 0;
+            element.chats = listHistory_2[i].messages;
+            element.stepHistory = listHistory_2[i].history;
+            element.time =  Utils.formatDate(listHistory_2[i].createdTime);
+
+            listHistory.push(element);
+        }
+
+       // console.log(listHistory);
+
+        res.status(StatusResponseConfig.Ok).send(listHistory);
+        console.log(`[GetListHistory] - Success: ${listHistory}`);
+    }catch(error) {
+        res.status(StatusResponseConfig.Error).send({message: error});
+        console.log(`[GetListHistory] - Error: ${error}`);
+    }
+};
