@@ -1,6 +1,6 @@
 const StatusConstant = require('../config/StatusResponseConfig');
 const Board = require('../models/Board.M');
-const ListOnlineUser = require("../socket.io/ListOnlineUser");
+const ListOnlineUser = require("../socket.io/ListOnlineUserManager");
 const BoardConstants = require('../config/Board.Cfg');
 
 const iGomokuCOntrollers = {

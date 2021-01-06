@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-
+const passport = require('passport');
 module.exports = {
   verifyJwtToken: (token, secretKey) => {
     return new Promise((resolve, reject) => {
@@ -11,4 +11,6 @@ module.exports = {
       });
     });
   },
+
+  authenticateJWT: passport.authenticate('jwt', { session: false }),
 }

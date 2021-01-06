@@ -1,9 +1,9 @@
 const EVENT_NAMES =require('../config/SocketIO.Cfg');
 const socketIo = require("socket.io");
-const ListOnlineUser = require('./ListOnlineUser');
+const ListOnlineUser = require('./ListOnlineUserManager');
 const Account = require('../models/Account.M');
 const AuthUtils = require('../utils/Auth.Utils');
-//const StatusContans = require('../config/StatusResponseConfig');
+const SocketManager = require('./SocketManager');
 
 const JWTCfg = require('../config/JWT.Cfg');
 
@@ -22,7 +22,8 @@ const configSocketIO = (server) =>{
      
     io.on(EVENT_NAMES.CONNECTION, (socket) => {
         console.log(`Socket [${socket.id}]: connected.`);
-
+        //socket managerment anonymous user & sign in user 
+        SocketManager.push(socket);
         //user already login before(has jwt token), open another tab
         socket.on(EVENT_NAMES.REQUEST_USER_ONLINE, async ({jwtToken})=>{
 
@@ -65,6 +66,8 @@ const configSocketIO = (server) =>{
             if (offlineUser)
             {
                 ListOnlineUser.removeUser(socket.id);
+                //remove socket from socketManager
+                SocketManager.removeSocket(socket.id);
                 console.log("signout");
                 io.emit(EVENT_NAMES.RESPONSE_USER_OFFLINE, {offlineUser});
             }
@@ -128,6 +131,11 @@ const realTimeActions = {
         //join room 
         //console.log(io.sockets.connected);
         //io.sockets.socket(player.socketID).join(boardID);
+    },
+
+    updateBoardActiveList: (newBoard) =>{
+        console.log(`[Board]: Create new board ${newBoard._id}`)
+        io.emit(EVENT_NAMES.RESPONSE_NEW_BOARD, {newBoard});
     }
 }
 

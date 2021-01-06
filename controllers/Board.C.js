@@ -29,7 +29,7 @@ module.exports.createBoard = async function (req, res, next) {
     {
         boardInfo.player = player._id;
     }
-    
+
     const createdBoard = new Board(boardInfo);
     
     try {
@@ -37,7 +37,11 @@ module.exports.createBoard = async function (req, res, next) {
         console.log(`[CreateNewBoard] - By ${userId} - Board: ${savedBoard}`);
 
         //realtime invite for player
-        realTimeActions.sendInviteToPlayer(savedBoard._id, player);
+        if (typeof player!== "undefined")
+        {
+            realTimeActions.sendInviteToPlayer(savedBoard._id, player);
+        }
+        realTimeActions.updateBoardActiveList(savedBoard);
         return res.status(StatusConstant.Ok).send(savedBoard);
     } catch (error) {
         res.status(StatusConstant.Error).send({ message: error });

@@ -9,6 +9,7 @@ const EVENT_NAMES = {
     INVITE_JOIN_MATCH: "invite-player",
     ACCEPT_INVITE: "accept-invite",
     START_GAME: "start-game",
+    RESPONSE_NEW_BOARD: "new-board",
     MSG_FROM_CLIENT: "send-message",
     MSG_TO_CLIENT: "receive-message",
     STEP_FROM_CLIENT:"send-position",

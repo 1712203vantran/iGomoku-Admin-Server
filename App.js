@@ -7,6 +7,7 @@ const logger = require('morgan');
 const passport = require('passport');
 const mongoDBConnnection = require('./db/mongoDB');
 const realtime = require('./socket.io');
+const AuthUtils = require('./utils/Auth.Utils');
 
 const PORT = process.env.PORT || 8000;
 
@@ -48,8 +49,8 @@ require('./middlewares/Passport-jwt.Middleware');
 
 // Use router
 app.use('/auth', AuthRoute);
-app.use('/admin', passport.authenticate('jwt', { session: false }), AdminRoute);
-app.use('/user', passport.authenticate('jwt', { session: false }), UserRoute);
+app.use('/admin', AuthUtils.authenticateJWT, AdminRoute);
+app.use('/user',  AuthUtils.authenticateJWT, UserRoute);
 app.use('/board', BoardRoute);
 app.use('/search', SearchRoute);
 app.use('/iGomoku', iGomokuRoute);
