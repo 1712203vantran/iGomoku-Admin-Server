@@ -10,6 +10,7 @@ const iGomokuCOntrollers = {
             const listBoard = await Board.find({})
             .populate({path: 'owner', select:"fullname" })
             .populate({path: 'player', select: "fullname"})
+            .select("boardName boardStatus isPrivate password watchers ")
             .exec();
             const listBoardInProgress = listBoard.filter(board=>board.boardStatus !== BoardConstants.INRESULT_STATUS);
             console.log(`[Online User]:${listOnlUsers.length} [Board]: ${listBoardInProgress.length}`)

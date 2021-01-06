@@ -15,6 +15,16 @@ const SocketManager = {
         })
     },
 
+    getSocketBySocketID: (socketID) =>{
+        for (let i =0 ;i<socketList.length; i++)
+        {
+            if (socketList[i].id === socketID)
+            {
+                return socketList[i];
+            }
+        }
+        return null;
+    }
 }
 
 module.exports = SocketManager;

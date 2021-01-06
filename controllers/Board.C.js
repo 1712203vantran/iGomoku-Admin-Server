@@ -12,14 +12,15 @@ const History = require('../models/HistoryGame.M');
     - boardName: string
  */
 module.exports.createBoard = async function (req, res, next) {
-    const userId = req.body.userID; // user create board (owner)
-    const boardName = req.body.boardName;
-    const isPrivate = req.body.isPrivate;
-    const password = req.body.password;
-    const player = req.body.player;
-
+    const {userID,// user create board (owner)
+    boardName,
+    isPrivate,
+    password,
+    player,
+    ownerName,
+    socketID } = req.body;
     const boardInfo = {
-        owner: userId,
+        owner: userID,
         boardName: boardName,
         boardStatus: BoardConstants.WATING_STATUS, //watting
         isPrivate:isPrivate,
@@ -34,18 +35,34 @@ module.exports.createBoard = async function (req, res, next) {
     
     try {
         const savedBoard = await createdBoard.save();
-        console.log(`[CreateNewBoard] - By ${userId} - Board: ${savedBoard}`);
+        console.log(`[CreateNewBoard] - By ${userID} - Board: ${savedBoard._id}`);
 
         //realtime invite for player
+        realTimeActions.updateBoardActiveList(socketID, {
+            owner: {
+                fullname: ownerName,
+                _id: userID
+            },
+            boardName: savedBoard.boardName,
+            watchers:  savedBoard.watchers,
+            _id: savedBoard._id,
+            boardStatus: savedBoard.boardStatus,
+            isPrivate: savedBoard.isPrivate,
+            player: player?player:null,
+        });
+
         if (typeof player!== "undefined")
         {
-            realTimeActions.sendInviteToPlayer(savedBoard._id, player);
+            realTimeActions.sendInviteToPlayer(savedBoard._id, {
+                fullname: ownerName,
+                socketID: player.socketID,
+                _id: player._id,
+            });
         }
-        realTimeActions.updateBoardActiveList(savedBoard);
         return res.status(StatusConstant.Ok).send(savedBoard);
     } catch (error) {
         res.status(StatusConstant.Error).send({ message: error });
-        console.log(`[CreateNewBoard] - By ${userId} - Error: ${error}`);
+        console.log(`[CreateNewBoard] - By ${userID} - Error: ${error}`);
     }
 };
 
@@ -54,16 +71,16 @@ module.exports.createBoard = async function (req, res, next) {
     - boardId: string
  */
 module.exports.deleteBoard = async function (req, res, next) {
-    const boardId = req.body.boardId;
+    const boardID = req.body.boardID;
 
     // delete board
     try {
-        const removedBoard = await Board.remove({ _id: boardId });
+        const removedBoard = await Board.remove({ _id: boardID });
         res.status(StatusConstant.Ok).send(removedBoard);
-        console.log(`[DeleteBoard] - BoardID ${boardId} - Board ${board}`);
+        console.log(`[DeleteBoard] - BoardID ${boardID} - Board ${board}`);
     } catch (error) {
         res.status(StatusConstant.Error).send({message: error});
-        console.log(`[DeleteBoard] - BoardID ${boardId} - Error ${error}`);
+        console.log(`[DeleteBoard] - BoardID ${boardID} - Error ${error}`);
     }
 };
 
@@ -110,22 +127,23 @@ module.exports.findBoardByName = async function (req, res, next) {
     - Board Id: String
  */
 module.exports.playerJoinBoard = async function (req, res, next) {
-    const playerId = req.body.userID;
-    const boardId = req.body.boardID;
-
+    const playerID = req.body.userID;
+    const boardID = req.body.boardID;
+    const socketID = req.body.socketID;
     try {
-        const joinBoard = await Board.updateOne(
-            {_id: boardId},
+        const joinBoard = await Board.findOneAndUpdate(
+            {_id: boardID},
             { $set: 
                 {
-                    player: playerId,
+                    player: playerID,
                     boardStatus: BoardConstants.INGAME_STATUS,
                 }
             },
-            
+            {new: true},
         );
         res.status(StatusConstant.Ok).send(joinBoard);
-        console.log(`[PlayerJoinBoard] - BoardId ${boardId} - PlayerId ${playerId}`);
+        console.log(`[PlayerJoinBoard] - BoardId ${boardID} - PlayerId ${playerID}`);
+        realTimeActions.joinGame(boardID, socketID);
     }catch(error) {
         res.status(StatusConstant.Error).send({message: error});
         console.log(`[PlayerJoinBoard] - Error: ${error}`);

@@ -53,6 +53,16 @@ const ListOnlineUser = {
         return null;
     },
     
+    getSocketIDByuserID: (userID) =>{
+        for (let i = 0;i<clients.length;i++)
+        {
+            if (clients[i]._id.equals(userID))
+            {
+                return clients[i].socketID;
+            }
+        }
+        return null;
+    },
     isContainUser: (userID)=>{
         return !clients.every(client => client._id !== userID);
     }

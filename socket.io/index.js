@@ -26,11 +26,6 @@ const configSocketIO = (server) =>{
         SocketManager.push(socket);
         //user already login before(has jwt token), open another tab
         socket.on(EVENT_NAMES.REQUEST_USER_ONLINE, async ({jwtToken})=>{
-
-            // const listUser = ListOnlineUser.getListOnlineUser();
-            // console.log(`[Online user]:  ${listUser.length}`);
-            // //thông báo tới tất cả các sockt đang kết nối người dùng đã đăng nhập
-            // io.sockets.emit(EVENT_NAMES.RESPONSE_USER_LIST, JSON.stringify(listUser));
             try{    
                 const decoded = await AuthUtils.verifyJwtToken(jwtToken, JWTCfg.secret);              
                 const user = await Account.findById({_id: decoded.userID}).exec();
@@ -46,6 +41,7 @@ const configSocketIO = (server) =>{
             }catch(error)
             {
                 console.error(error);
+                socket.emit(EVENT_NAMES.EXPIRED_TOKEN);
             }
            
             // if (user.userID !== "0")
@@ -68,7 +64,6 @@ const configSocketIO = (server) =>{
                 ListOnlineUser.removeUser(socket.id);
                 //remove socket from socketManager
                 SocketManager.removeSocket(socket.id);
-                console.log("signout");
                 io.emit(EVENT_NAMES.RESPONSE_USER_OFFLINE, {offlineUser});
             }
         });
@@ -81,11 +76,11 @@ const configSocketIO = (server) =>{
         // });
 
         //chập nhận lời mời tham gia phòng chơi
-        socket.on(EVENT_NAMES.ACCEPT_INVITE, (info) =>{
-            console.log({info});
-            socket.to(info.boardID).emit(EVENT_NAMES.START_GAME, (info.boardID));
-            socket.join(info.boardID);
-        });
+        // socket.on(EVENT_NAMES.ACCEPT_INVITE, (info) =>{
+        //     console.log({info});
+        //     socket.to(info.boardID).emit(EVENT_NAMES.START_GAME, (info.boardID));
+        //     socket.join(info.boardID);
+        // });
 
         //nhận tin nhắn và gửi cho những người khác trong phòng
         socket.on(EVENT_NAMES.MSG_FROM_CLIENT, (data)=>{
@@ -125,17 +120,34 @@ const realTimeActions = {
         }   
     },
 
-    sendInviteToPlayer: (boardID,player) =>{
-        player.boardID = boardID;
-        io.to(player.socketID).emit(EVENT_NAMES.INVITE_JOIN_MATCH, JSON.stringify(player));
-        //join room 
-        //console.log(io.sockets.connected);
-        //io.sockets.socket(player.socketID).join(boardID);
+    sendInviteToPlayer: (boardID, player) =>{
+        player.boardID = boardID;    
+        const socketID = ListOnlineUser.getSocketIDByuserID(player._id);
+        if (socketID)
+        {
+            console.log(`[Board]: Send Invite to ${socketID}`);
+            io.to(socketID).emit(EVENT_NAMES.INVITE_JOIN_MATCH, {player});
+        }
     },
 
-    updateBoardActiveList: (newBoard) =>{
-        console.log(`[Board]: Create new board ${newBoard._id}`)
+    updateBoardActiveList: (socketID, newBoard) =>{ 
+        const socketJoin = SocketManager.getSocketBySocketID(socketID);
+        if (socketJoin)
+        {
+            console.log(`[Board]: Realtime ${socketJoin.id} join ${newBoard._id}`);
+            socketJoin.join(newBoard._id.toString());
+        }    
         io.emit(EVENT_NAMES.RESPONSE_NEW_BOARD, {newBoard});
+    },
+
+    joinGame: (boardID, socketID)=>{
+        const socketJoin = SocketManager.getSocketBySocketID(socketID);
+        if (socketJoin)
+        {
+            console.log(`[Board]: Accept Invite ${socketID} join ${boardID}`);
+            socketJoin.to(boardID).emit(EVENT_NAMES.START_GAME, {boardID});
+            socketJoin.join(boardID);
+        }        
     }
 }
 

@@ -1,6 +1,7 @@
 
 const EVENT_NAMES = {
     CONNECTION: "connection",
+    EXPIRED_TOKEN: "expired-token",
     REQUEST_USER_ONLINE: "request-online-user",
     RESPONSE_USER_ONLINE: "response-online-user",
     RESPONSE_USER_OFFLINE: "response-user-offline",
