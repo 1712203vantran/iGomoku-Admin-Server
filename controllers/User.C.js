@@ -338,11 +338,12 @@ module.exports.getHistory = async function(req, res, next)
         result.time =  Utils.formatDate(history.createdTime);
         result.eloGot = history.eloGot;
         result.boardName = (await Board.findById(history.boardID))['boardName'];
+        result.winningLine = history.winningLine;
 
         console.log("result ne: " + JSON.stringify(result));
 
         res.status(StatusResponseConfig.Ok).send(result);
-        console.log(`[GetHistory] - Success: ${history}`);
+        console.log(`[GetHistory] - Success: ${result}`);
     }catch(error) {
         res.status(StatusResponseConfig.Error).send({message: error});
         console.log(`[GetHistory] - Error: ${error}`);
