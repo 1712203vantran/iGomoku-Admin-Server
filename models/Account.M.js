@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const Utils = require('../utils/Utils');
 
 // Account Scheme
 /*

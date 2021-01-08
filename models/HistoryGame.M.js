@@ -5,7 +5,6 @@ const HistoryStepSchema = mongoose.Schema({
         type: Number,
         require: true,
     },
-    
 });
 
 // History Game Scheme

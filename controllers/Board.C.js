@@ -129,21 +129,42 @@ module.exports.findBoardByName = async function (req, res, next) {
 module.exports.playerJoinBoard = async function (req, res, next) {
     const playerID = req.body.userID;
     const boardID = req.body.boardID;
-    const socketID = req.body.socketID;
     try {
-        const joinBoard = await Board.findOneAndUpdate(
-            {_id: boardID},
-            { $set: 
+        //get board 's infomation
+        const boardInfo = await Board.findById({_id: boardID}).exec();
+        //check if player null => second person is player else become watcher
+        console.log(boardInfo);
+        if (boardInfo.player === null)
+        {
+            const joinBoard = await Board.findOneAndUpdate(
+                {_id: boardID},
+                { $set: 
+                    {
+                        player: playerID,
+                        boardStatus: BoardConstants.INGAME_STATUS,
+                    }
+                },
+                {new: true},
+            );
+            console.log(`[PlayerJoinBoard] - BoardId ${boardID} - PlayerId ${playerID}`);
+            realTimeActions.joinBoard(boardID, playerID);
+            return res.status(StatusConstant.Ok).send(joinBoard);
+        }
+        else        //update watcher list 
+        {
+            const watchers = Array.from(boardInfo.watchers);
+            watchers.push(playerID);
+            const joinBoard = await Board.findOneAndUpdate(
+                {_id: boardID},
                 {
-                    player: playerID,
-                    boardStatus: BoardConstants.INGAME_STATUS,
-                }
-            },
-            {new: true},
-        );
-        res.status(StatusConstant.Ok).send(joinBoard);
-        console.log(`[PlayerJoinBoard] - BoardId ${boardID} - PlayerId ${playerID}`);
-        realTimeActions.joinGame(boardID, socketID);
+                    watchers: watchers
+                },
+                {new: true},
+            );
+            console.log(`[WatcherJoinBoard] - BoardId ${boardID} - PlayerId ${playerID}`);
+            realTimeActions.joinBoard(boardID, playerID);
+            return res.status(StatusConstant.Ok).send(joinBoard);
+        }
     }catch(error) {
         res.status(StatusConstant.Error).send({message: error});
         console.log(`[PlayerJoinBoard] - Error: ${error}`);
@@ -254,24 +275,12 @@ module.exports.getInfoOfTwoPlayer = async function(req,res,next) {
 
     //get board info by boardID
     try {   
-        const board = await Board.findById({_id: boardID}).
-                                    populate({path: "owner",select: "fullname"}).
-                                    populate({path: "player",select: "fullname"}).exec();
-        //find owner info and player info ID in board
-        // const ownerID = board.owner;
-        // const playerID = board.player;
-        // const boardInfo = await Object.assign({},board.toJSON(), {
-        //     ...board,
-        //     owner: {},
-        //     player: {},
-        // });
-        
-        // boardInfo.owner = await Account.findById({_id: ownerID}).exec();
-       
-        // boardInfo.player = await Account.findById({_id: playerID}).exec();
-
+        const board = await Board.findById({_id: boardID})
+        .populate({path: "owner",select: "fullname"})
+        .populate({path: "player",select: "fullname"})
+        .exec();
         res.status(StatusConstant.Ok).send(board);
-        console.log(`[GetBoard] - Success ${board}`);
+        console.log(`[GetBoard] - Success ${board._id}`);
     } catch (error) {
         res.status(StatusConstant.Error).send({message: error});
         console.log(`[GetBoard] - Error: ${error}`);

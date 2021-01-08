@@ -119,7 +119,7 @@ const realTimeActions = {
             io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {user});
         }   
     },
-
+    //send invite to join game from challenger
     sendInviteToPlayer: (boardID, player) =>{
         player.boardID = boardID;    
         const socketID = ListOnlineUser.getSocketIDByuserID(player._id);
@@ -129,7 +129,7 @@ const realTimeActions = {
             io.to(socketID).emit(EVENT_NAMES.INVITE_JOIN_MATCH, {player});
         }
     },
-
+    //add new board to board list 
     updateBoardActiveList: (socketID, newBoard) =>{ 
         const socketJoin = SocketManager.getSocketBySocketID(socketID);
         if (socketJoin)
@@ -139,14 +139,15 @@ const realTimeActions = {
         }    
         io.emit(EVENT_NAMES.RESPONSE_NEW_BOARD, {newBoard});
     },
-
-    joinGame: (boardID, socketID)=>{
+    //another user join board
+    joinBoard: (boardID, userID)=>{
+        const socketID = ListOnlineUser.getSocketIDByuserID(userID);
         const socketJoin = SocketManager.getSocketBySocketID(socketID);
         if (socketJoin)
         {
-            console.log(`[Board]: Accept Invite ${socketID} join ${boardID}`);
-            socketJoin.to(boardID).emit(EVENT_NAMES.START_GAME, {boardID});
+            console.log(`[Board]: Socket ${socketID} join ${boardID}`);
             socketJoin.join(boardID);
+            io.in(boardID).emit(EVENT_NAMES.JOIN_BOARD, {boardID});
         }        
     }
 }
