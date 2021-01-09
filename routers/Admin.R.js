@@ -6,4 +6,6 @@ router.get('/list-user', AdminController.getListUser);
 
 router.post('/set-user-status', AdminController.settingUserAccessing);
 
+router.get('/user-profile', AdminController.getUserProfile);
+
 module.exports = router;

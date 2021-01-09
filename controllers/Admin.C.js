@@ -2,6 +2,7 @@ const Account = require('../models/Account.M');
 const Utils = require('../utils/Utils');
 const StatusConstant = require('../config/StatusResponseConfig');
 const AccountConstant = require('../config/Account.Cfg');
+const StatusResponseConfig = require('../config/StatusResponseConfig');
 
 
 module.exports.getListUser = async function(req, res, next){
@@ -40,7 +41,17 @@ module.exports.settingUserAccessing =  async function(req, res, next){
     }
 }
 
+module.exports.getUserProfile = async function(req, res, next)
+{
+    const id = req.query.userId;
 
+    try {
+        const profile = await Account.findById(id);
+        res.status(StatusResponseConfig.Ok).send(profile);
+    }catch(error) {
+        res.status(StatusResponseConfig.Error).send({message: error});
+    }
+};
 
 
 
