@@ -45,6 +45,10 @@ const AccountSchema = mongoose.Schema({
         type: Number,
         default: 600
     },
+    xu: {
+        type: Number,
+        default: 100
+    },
     accountStatus: {
         type: Number,
         default: -1
