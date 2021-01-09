@@ -1,10 +1,10 @@
 const mongoose = require('mongoose');
 
 const HistoryStepSchema = mongoose.Schema({
-    step:{
-        type: Array,
+    position:{
+        type: Number,
         require: true,
-    }
+    },
 });
 
 // History Game Scheme

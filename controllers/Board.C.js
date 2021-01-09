@@ -12,14 +12,15 @@ const History = require('../models/HistoryGame.M');
     - boardName: string
  */
 module.exports.createBoard = async function (req, res, next) {
-    const userId = req.body.userID; // user create board (owner)
-    const boardName = req.body.boardName;
-    const isPrivate = req.body.isPrivate;
-    const password = req.body.password;
-    const player = req.body.player;
-
+    const {userID,// user create board (owner)
+    boardName,
+    isPrivate,
+    password,
+    player,
+    ownerName,
+    socketID } = req.body;
     const boardInfo = {
-        owner: userId,
+        owner: userID,
         boardName: boardName,
         boardStatus: BoardConstants.WATING_STATUS, //watting
         isPrivate:isPrivate,
@@ -29,19 +30,39 @@ module.exports.createBoard = async function (req, res, next) {
     {
         boardInfo.player = player._id;
     }
-    
+
     const createdBoard = new Board(boardInfo);
     
     try {
         const savedBoard = await createdBoard.save();
-        console.log(`[CreateNewBoard] - By ${userId} - Board: ${savedBoard}`);
+        console.log(`[CreateNewBoard] - By ${userID} - Board: ${savedBoard._id}`);
 
         //realtime invite for player
-        realTimeActions.sendInviteToPlayer(savedBoard._id, player);
+        realTimeActions.updateBoardActiveList(socketID, {
+            owner: {
+                fullname: ownerName,
+                _id: userID
+            },
+            boardName: savedBoard.boardName,
+            watchers:  savedBoard.watchers,
+            _id: savedBoard._id,
+            boardStatus: savedBoard.boardStatus,
+            isPrivate: savedBoard.isPrivate,
+            player: player?player:null,
+        });
+
+        if (typeof player!== "undefined")
+        {
+            realTimeActions.sendInviteToPlayer(savedBoard._id, {
+                fullname: ownerName,
+                socketID: player.socketID,
+                _id: player._id,
+            });
+        }
         return res.status(StatusConstant.Ok).send(savedBoard);
     } catch (error) {
         res.status(StatusConstant.Error).send({ message: error });
-        console.log(`[CreateNewBoard] - By ${userId} - Error: ${error}`);
+        console.log(`[CreateNewBoard] - By ${userID} - Error: ${error}`);
     }
 };
 
@@ -50,16 +71,16 @@ module.exports.createBoard = async function (req, res, next) {
     - boardId: string
  */
 module.exports.deleteBoard = async function (req, res, next) {
-    const boardId = req.body.boardId;
+    const boardID = req.body.boardID;
 
     // delete board
     try {
-        const removedBoard = await Board.remove({ _id: boardId });
+        const removedBoard = await Board.remove({ _id: boardID });
         res.status(StatusConstant.Ok).send(removedBoard);
-        console.log(`[DeleteBoard] - BoardID ${boardId} - Board ${board}`);
+        console.log(`[DeleteBoard] - BoardID ${boardID} - Board ${board}`);
     } catch (error) {
         res.status(StatusConstant.Error).send({message: error});
-        console.log(`[DeleteBoard] - BoardID ${boardId} - Error ${error}`);
+        console.log(`[DeleteBoard] - BoardID ${boardID} - Error ${error}`);
     }
 };
 
@@ -106,22 +127,44 @@ module.exports.findBoardByName = async function (req, res, next) {
     - Board Id: String
  */
 module.exports.playerJoinBoard = async function (req, res, next) {
-    const playerId = req.body.userID;
-    const boardId = req.body.boardID;
-
+    const playerID = req.body.userID;
+    const boardID = req.body.boardID;
     try {
-        const joinBoard = await Board.updateOne(
-            {_id: boardId},
-            { $set: 
+        //get board 's infomation
+        const boardInfo = await Board.findById({_id: boardID}).exec();
+        //check if player null => second person is player else become watcher
+        console.log(boardInfo);
+        if (boardInfo.player === null)
+        {
+            const joinBoard = await Board.findOneAndUpdate(
+                {_id: boardID},
+                { $set: 
+                    {
+                        player: playerID,
+                        boardStatus: BoardConstants.INGAME_STATUS,
+                    }
+                },
+                {new: true},
+            );
+            console.log(`[PlayerJoinBoard] - BoardId ${boardID} - PlayerId ${playerID}`);
+            realTimeActions.joinBoard(boardID, playerID);
+            return res.status(StatusConstant.Ok).send(joinBoard);
+        }
+        else        //update watcher list 
+        {
+            const watchers = Array.from(boardInfo.watchers);
+            watchers.push(playerID);
+            const joinBoard = await Board.findOneAndUpdate(
+                {_id: boardID},
                 {
-                    player: playerId,
-                    boardStatus: BoardConstants.INGAME_STATUS,
-                }
-            },
-            
-        );
-        res.status(StatusConstant.Ok).send(joinBoard);
-        console.log(`[PlayerJoinBoard] - BoardId ${boardId} - PlayerId ${playerId}`);
+                    watchers: watchers
+                },
+                {new: true},
+            );
+            console.log(`[WatcherJoinBoard] - BoardId ${boardID} - PlayerId ${playerID}`);
+            realTimeActions.joinBoard(boardID, playerID);
+            return res.status(StatusConstant.Ok).send(joinBoard);
+        }
     }catch(error) {
         res.status(StatusConstant.Error).send({message: error});
         console.log(`[PlayerJoinBoard] - Error: ${error}`);
@@ -232,24 +275,12 @@ module.exports.getInfoOfTwoPlayer = async function(req,res,next) {
 
     //get board info by boardID
     try {   
-        const board = await Board.findById({_id: boardID}).
-                                    populate({path: "owner",select: "fullname"}).
-                                    populate({path: "player",select: "fullname"}).exec();
-        //find owner info and player info ID in board
-        // const ownerID = board.owner;
-        // const playerID = board.player;
-        // const boardInfo = await Object.assign({},board.toJSON(), {
-        //     ...board,
-        //     owner: {},
-        //     player: {},
-        // });
-        
-        // boardInfo.owner = await Account.findById({_id: ownerID}).exec();
-       
-        // boardInfo.player = await Account.findById({_id: playerID}).exec();
-
+        const board = await Board.findById({_id: boardID})
+        .populate({path: "owner",select: "fullname"})
+        .populate({path: "player",select: "fullname"})
+        .exec();
         res.status(StatusConstant.Ok).send(board);
-        console.log(`[GetBoard] - Success ${board}`);
+        console.log(`[GetBoard] - Success ${board._id}`);
     } catch (error) {
         res.status(StatusConstant.Error).send({message: error});
         console.log(`[GetBoard] - Error: ${error}`);
