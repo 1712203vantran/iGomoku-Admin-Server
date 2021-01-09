@@ -121,24 +121,13 @@ module.exports.processingFriendInvitation = async function (req, res, next) {
             console.log("[ProcessingFriendInvitation] - Error delete invitation msg: " + error);
         }
 
-        // new listFriend
-        const listFriend_1 = await Friend.find({ "user01": userId }).exec();
-        const listFriend_2 = await Friend.find({ "user02": userId }).exec();
-        for (var i = 0; i < listFriend_1.length; i++) {
-            var others = await Account.findById(listFriend_1[i]['user02']);
-            listFriend.push(others);
-        }
-        for (var i = 0; i < listFriend_2.length; i++) {
-            var others = await Account.findById(listFriend_2[i]['user01']);
-            listFriend.push(others);
-        }
-
 
         try {
             const savedFriend = await newFriend.save();
             const result = [];
             const listInvitation = await FriendInvitation.find({ "toUser": userId }).exec();
 
+            // new list invitation
             for (var i = 0; i < listInvitation.length; i++) {
                 var fromUser = await Account.findById(listInvitation[i]['fromUser']);
                 result[i] = {};
@@ -157,6 +146,19 @@ module.exports.processingFriendInvitation = async function (req, res, next) {
                     result[i].fromUser_xu = 0;
                 }
             }
+
+            // new listFriend
+            const listFriend_1 = await Friend.find({ "user01": userId }).exec();
+            const listFriend_2 = await Friend.find({ "user02": userId }).exec();
+            for (var i = 0; i < listFriend_1.length; i++) {
+                var others = await Account.findById(listFriend_1[i]['user02']);
+                listFriend.push(others);
+            }
+            for (var i = 0; i < listFriend_2.length; i++) {
+                var others = await Account.findById(listFriend_2[i]['user01']);
+                listFriend.push(others);
+            }
+
             res.status(StatusResponseConfig.Ok).send({ listFriend: listFriend, listInvitation: result });
             console.log(`[ProcessingFriendInvitation] - Success: ${savedFriend}`);
         } catch (error) {
