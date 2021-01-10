@@ -17,5 +17,6 @@ router.post('/edit-profile', AuthController.updateProfile);
 router.post('/change-password', AuthController.changePassword);
 
 router.post('/send-verify-email', AuthController.sendVerifyEmail);
+router.post('/verified-email', AuthController.verifiedEmail);
 
 module.exports = router;
