@@ -4,9 +4,9 @@ const ListOnlineUser = require('./ListOnlineUserManager');
 const Account = require('../models/Account.M');
 const AuthUtils = require('../utils/Auth.Utils');
 const SocketManager = require('./SocketManager');
-
+const BoardManager = require('./BoardMangager');
 const JWTCfg = require('../config/JWT.Cfg');
-
+const BoardConstants = require('../config/Board.Cfg');
 
 let io = null;
 
@@ -82,6 +82,18 @@ const configSocketIO = (server) =>{
         //     socket.join(info.boardID);
         // });
 
+        socket.on(EVENT_NAMES.JOIN_BOARD, ({boardID}) =>{
+            socket.join(boardID);
+            console.log(`[${socket.id}]: join board ${boardID}`);
+            BoardManager.joinBoard(boardID, socket.id);
+        })
+
+        socket.on(EVENT_NAMES.START_GAME, ({boardID}) =>{
+            BoardManager.startGame(boardID);
+            console.log("Start game");
+            io.in(boardID).emit(EVENT_NAMES.START_GAME, {ststus: BoardConstants.INGAME_STATUS});
+        });
+
         //nhận tin nhắn và gửi cho những người khác trong phòng
         socket.on(EVENT_NAMES.MSG_FROM_CLIENT, (data)=>{
             const dataRevice = JSON.parse(data);
@@ -135,19 +147,22 @@ const realTimeActions = {
         if (socketJoin)
         {
             console.log(`[Board]: Realtime ${socketJoin.id} join ${newBoard._id}`);
-            socketJoin.join(newBoard._id.toString());
+            //socketJoin.join(newBoard._id.toString());
+            //BoardManager.push(socketID, newBoard);
+            io.emit(EVENT_NAMES.RESPONSE_NEW_BOARD, {newBoard});
         }    
-        io.emit(EVENT_NAMES.RESPONSE_NEW_BOARD, {newBoard});
+        
     },
     //another user join board
-    joinBoard: (boardID, userID)=>{
-        const socketID = ListOnlineUser.getSocketIDByuserID(userID);
-        const socketJoin = SocketManager.getSocketBySocketID(socketID);
-        if (socketJoin)
+    notifyUser: (boardID, playerID, ownerID)=>{
+        //ownerID
+        const socketOwnerID = ListOnlineUser.getSocketIDByuserID(ownerID);
+        const socketPlayerID = ListOnlineUser.getSocketIDByuserID(playerID);
+        if (socketOwnerID && socketPlayerID)
         {
-            console.log(`[Board]: Socket ${socketID} join ${boardID}`);
-            socketJoin.join(boardID);
-            io.in(boardID).emit(EVENT_NAMES.JOIN_BOARD, {boardID});
+            console.log(`[Board]: notify ${socketPlayerID} & ${socketPlayerID}`);
+            //BoardManager.joinBoard(socketOwnerID, boardID);
+            io.to(socketOwnerID).to(socketPlayerID).emit(EVENT_NAMES.JOIN_BOARD, {boardID});
         }        
     }
 }
