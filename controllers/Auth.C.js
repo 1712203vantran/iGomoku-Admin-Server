@@ -1,3 +1,5 @@
+
+const sendMailActiveAccount = require('../config/nodemailer');
 const Account = require('../models/Account.M');
 const jwtCfg = require('../config/JWT.Cfg');
 const jwt = require("jsonwebtoken");
@@ -287,9 +289,13 @@ function validateEmail(email) {
     const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
     return re.test(String(email).toLowerCase());
 }
+// user bấm send verify email 
+// => Gọi api => api validate email và gửi email chứa link nhúng token 
+// => click vào link dẫn đến trang confirm ở FE => gọi api đã xác thực email 
 module.exports.sendVerifyEmail = async function(req, res, next)
 {
     const id = req.body.userId;
+    const jwtToken = req.body.jwtToken;
 
     try {
         const account = await Account.findOne({ "_id": id}).exec();
@@ -299,14 +305,36 @@ module.exports.sendVerifyEmail = async function(req, res, next)
         else if (!validateEmail(account.email)) {
             res.status(StatusResponseConfig.Error).send({message: "Invalid email address"});
         }
+        else if (account.accountStatus === 0 || account.accountStatus === 2) {
+            res.status(StatusResponseConfig.Error).send({message: "Account had already been verified"});
+        }
         else{// send email
-            var payload = { userID: account._id };
-            var token = jwt.sign(payload, jwtCfg.secret);
-
-            res.status(StatusResponseConfig.Ok).json({
-                token: token,
-                //account: account
-              });
+            const email = account.email;
+            const userID = account.email;
+            const token = jwtToken;
+///////////////////////////////////////////////////////////////////////////////////////
+            const secret = await jwt.sign(
+                {
+                    userID,
+                    token,
+                },
+                jwtCfg.secret,
+                {
+                expiresIn: '900000',
+                }
+            );
+            try {
+                const mail = await sendMailActiveAccount({
+                    receiverEmail: email,
+                    link: `${process.env.USERURL}/verify-email/${secret}`,
+                });
+                res.send(mail);
+                res.status(StatusResponseConfig.Ok);
+            }
+            catch (e) {
+                res.status(StatusResponseConfig.Error).send({message: "Cannot send email to verify"});
+            }
+//////////////////////////////////////////////////////////////////////////////////////////
         }
     }catch(error) {
         console.log({error});
