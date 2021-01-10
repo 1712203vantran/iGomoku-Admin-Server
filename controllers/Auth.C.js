@@ -22,7 +22,11 @@ module.exports.signIn = async function(req, res, next)
         const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
         if(!account){
             res.status(StatusResponseConfig.Error).send({message: "Account is not exist!"});
-        }else{// Login successfully
+        }
+        else if (account.accountStatus === 1 || account.accountStatus === 2) {// account blocked
+            res.status(StatusResponseConfig.Error).send({message: "Account is blocked"});
+        }
+        else{// Login successfully
             var payload = { userID: account._id };
             var token = jwt.sign(payload, jwtCfg.secret);
             //realtime when new user signin to server
@@ -279,5 +283,33 @@ module.exports.changePassword = async function(req, res, next)
     }
 };
 
+function validateEmail(email) {
+    const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(String(email).toLowerCase());
+}
+module.exports.sendVerifyEmail = async function(req, res, next)
+{
+    const id = req.body.userId;
 
+    try {
+        const account = await Account.findOne({ "_id": id}).exec();
+        if(!account){
+            res.status(StatusResponseConfig.Error).send({message: "Account is not exist!"});
+        }
+        else if (!validateEmail(account.email)) {
+            res.status(StatusResponseConfig.Error).send({message: "Invalid email address"});
+        }
+        else{// send email
+            var payload = { userID: account._id };
+            var token = jwt.sign(payload, jwtCfg.secret);
 
+            res.status(StatusResponseConfig.Ok).json({
+                token: token,
+                //account: account
+              });
+        }
+    }catch(error) {
+        console.log({error});
+        res.status(StatusResponseConfig.Error).send({message: error});
+    }
+};
