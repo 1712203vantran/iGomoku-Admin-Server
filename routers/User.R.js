@@ -8,6 +8,8 @@ router.get('/list-friend', UserController.getListFriend);
 
 router.get('/list-history', UserController.getListHistory);
 
+router.get('/list-friend-invitation', UserController.getListFriendInvitation);
+
 router.get('/history', UserController.getHistory);
 
 router.post('/send-friend-invitation', UserController.sendMakingFriendRequest);

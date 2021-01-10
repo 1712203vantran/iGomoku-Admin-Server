@@ -57,6 +57,10 @@
 - status: int (0-mở khóa,1-khóa)
 * url: /admin/list-user-status
 
+3. xem profile user theo ID (GET)
+- userId (Id của user cần xem profile)
+* url: /admin/user-profile
+
 
 // USER
 1. Gửi lời mời kết bạn (POST)
