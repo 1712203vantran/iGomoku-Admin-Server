@@ -1,5 +1,6 @@
 
-const sendMailActiveAccount = require('../config/nodemailer');
+const EmailSender = require('../config/nodemailer');
+//const sendResetPasswordMail = require('../config/nodemailer');
 const Account = require('../models/Account.M');
 const jwtCfg = require('../config/JWT.Cfg');
 const jwt = require("jsonwebtoken");
@@ -324,7 +325,7 @@ module.exports.sendVerifyEmail = async function(req, res, next)
                 }
             );
             try {
-                const mail = await sendMailActiveAccount({
+                const mail = await EmailSender.sendMailActiveAccount({
                     receiverEmail: email,
                     link: `${process.env.USERURL}/verify-email/${secret}`,
                 });
@@ -380,6 +381,70 @@ module.exports.verifiedEmail = async function(req, res, next)
                 }
             });
         });
+    }catch(error) {
+        console.log({error});
+        res.status(StatusResponseConfig.Error).send({message: error});
+    }
+};
+
+function makeRandomPassword(length) {
+    var result           = '';
+    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var charactersLength = characters.length;
+    for ( var i = 0; i < length; i++ ) {
+       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    }
+    return result;
+ }
+// Nhập username và email => api Validate thông tin, nếu đúng thì gửi email chứa random password, ko thì báo lỗi
+module.exports.sendResetPasswordEmail = async function(req, res, next)
+{
+    const username = req.body.username;
+    const email = req.body.email;
+
+    try {
+        const account = await Account.findOne({ "username": username}).exec();
+        if(!account){
+            res.status(StatusResponseConfig.Error).send({message: "Account is not exist!"});
+        }
+        else if (account.accountStatus === -1 || account.accountStatus === 1) {
+            res.status(StatusResponseConfig.Error).send({message: "We're sorry but your account hasn't been verified to use this feature yet"});
+        }
+        else if (account.email !== email) {
+            res.status(StatusResponseConfig.Error).send({message: "Wrong authenticate email information"});
+        }
+        else{// send email
+            const userID = account._id;
+            //const newPassword = "newPassword";
+            const newPassword = makeRandomPassword(8);
+            
+            ////////// cập nhật password mới vào DB
+            try {
+                const changedPassword = await Account.updateOne(
+                    {_id: userID},
+                    { $set: 
+                        {
+                            password: newPassword
+                        }
+                    }
+                );
+            }catch(error) {
+                res.status(StatusResponseConfig.Error).send({message: error});
+            }
+///////////////////////////////////////////////////////////////////////////////////////
+            try {
+                const mail = await EmailSender.sendResetPasswordMail({
+                    receiverEmail: email,
+                    newPassword: newPassword,
+                });
+                res.send(mail);
+                res.status(StatusResponseConfig.Ok);
+            }
+            catch (e) {
+                res.status(StatusResponseConfig.Error).send({message: "Cannot send email to reset password"});
+            }
+//////////////////////////////////////////////////////////////////////////////////////////
+        }
     }catch(error) {
         console.log({error});
         res.status(StatusResponseConfig.Error).send({message: error});
