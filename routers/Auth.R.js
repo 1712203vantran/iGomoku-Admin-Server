@@ -1,6 +1,7 @@
 const express = require('express');
 const AuthController = require('../controllers/Auth.C');
 const router = express.Router();
+const AuthUntils = require('../utils/Auth.Utils');
 
 router.post('/signin', AuthController.signIn);
 
@@ -10,11 +11,11 @@ router.post('/signinFacebook', AuthController.signInFacebook);
 
 router.post('/signup', AuthController.signUp);
 
-router.get('/profile', AuthController.getProfile);
+router.get('/profile', AuthUntils.authenticateJWT, AuthController.getProfile);
 
-router.post('/edit-profile', AuthController.updateProfile);
+router.post('/edit-profile',AuthUntils.authenticateJWT, AuthController.updateProfile);
 
-router.post('/change-password', AuthController.changePassword);
+router.post('/change-password',AuthUntils.authenticateJWT, AuthController.changePassword);
 
 router.post('/send-verify-email', AuthController.sendVerifyEmail);
 router.post('/verified-email', AuthController.verifiedEmail);
