@@ -16,5 +16,10 @@ router.post('/edit-profile', AuthController.updateProfile);
 
 router.post('/change-password', AuthController.changePassword);
 
+router.post('/send-verify-email', AuthController.sendVerifyEmail);
+router.post('/verified-email', AuthController.verifiedEmail);
+
+router.post('/send-resetpassword-email', AuthController.sendResetPasswordEmail);
+//router.post('/verified-resetpassword', AuthController.verifiedResetPassword);
 
 module.exports = router;
