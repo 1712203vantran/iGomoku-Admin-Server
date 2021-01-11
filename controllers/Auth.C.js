@@ -355,30 +355,30 @@ module.exports.verifiedEmail = async function(req, res, next)
             }
             const uID1 = id;
             const uID2 = decoded.userID;
-            let uID3 = "";
-            jwt.verify(decoded.token, jwtCfg.secret, (err, decodedToken) => {
-                uID3 = decodedToken.userID;
-            });
-            if (uID1 === uID2 && uID2 === uID3) { //really exactly
-                //console.log(uID1);console.log(uID2);console.log(uID3);
-                ///// cập nhật account status trong DB
-                //const profile =  Account.findById(uID1);
-                //let newAccountStatus = ((profile.accountStatus === -1) ? 0 : (profile.accountStatus === 1 ? 2 : profile.accountStatus));
-                //console.log("newAccountStatus: " + newAccountStatus);///////////////
-                try {
-                    const updatedStatusAccount = Account.updateOne(
-                        {_id: uID1},
-                        { $set: 
-                            {
-                                accountStatus: 0,
-                            }
-                        }
-                    );
-                    res.status(StatusResponseConfig.Ok).send("Successful");
-                } catch(error) {
-                    res.status(StatusResponseConfig.Error).send({message: error});
+            jwt.verify(decoded.token, jwtCfg.secret, async (err2, decodedToken) => {
+                if (err2) {
+                    res.status(StatusResponseConfig.Error).send({message: "Cannot verify email"});
                 }
-            }
+                const uID3 = decodedToken.userID;
+                if (uID1 === uID2 && uID2 === uID3) { //really exactly
+                    ///// cập nhật account status trong DB
+                    const profile = await Account.findById(uID1);
+                    let newAccountStatus = ((profile.accountStatus === -1) ? 0 : (profile.accountStatus === 1 ? 2 : profile.accountStatus));
+                    try {
+                        const updatedStatusAccount = await Account.updateOne(
+                            {_id: uID1},
+                            { $set: 
+                                {
+                                    accountStatus: newAccountStatus,
+                                }
+                            }
+                        );
+                        res.status(StatusResponseConfig.Ok).send("Successful");
+                    } catch(error) {
+                        res.status(StatusResponseConfig.Error).send({message: error});
+                    }
+                }
+            });
         });
     }catch(error) {
         console.log({error});
