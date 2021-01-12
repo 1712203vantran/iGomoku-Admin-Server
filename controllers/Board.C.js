@@ -4,8 +4,6 @@ const StatusConstant = require('../config/StatusResponseConfig');
 const BoardConstants = require('../config/Board.Cfg');
 const {realTimeActions} = require('../socket.io');
 const History = require('../models/HistoryGame.M');
-const Board_Cfg = require('../config/Board.Cfg');
-
 
 /*
     CREATE BOARD
@@ -41,7 +39,8 @@ module.exports.createBoard = async function (req, res, next) {
         const history = new History({
             ownerID: userID,
             boardID: savedBoard._id,
-            eloGot: Board_Cfg.DEFAULT_ELO,
+            eloGot: BoardConstants.DEFAULT_ELO,
+            boardStatus: BoardConstants.CREATE_STATUS
         })
 
         const createdHistory = await history.save();
@@ -144,7 +143,7 @@ module.exports.playerJoinBoard = async function (req, res, next) {
         //get board 's infomation
         const boardInfo = await Board.findById({_id: boardID}).exec();
         //check if player null => second person is player else become watcher
-        if (boardInfo) 
+        if (boardInfo && !boardInfo.owner.equals(playerID)) 
         {
             if (boardInfo.player === null || boardInfo.player.equals(playerID))
             {

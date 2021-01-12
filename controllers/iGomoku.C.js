@@ -12,7 +12,8 @@ const iGomokuCOntrollers = {
             .populate({path: 'player', select: "fullname"})
             .select("boardName boardStatus isPrivate password watchers ")
             .exec();
-            const listBoardInProgress = listBoard.filter(board=>board.boardStatus !== BoardConstants.INRESULT_STATUS);
+            const listBoardInProgress = listBoard.filter(board=>
+                (board.boardStatus !== BoardConstants.INRESULT_STATUS || board.boardStatus !== BoardConstants.CREATE_STATUS));
             console.log(`[Online User]:${listOnlUsers.length} [Board]: ${listBoardInProgress.length}`)
             return res.status(StatusConstant.Ok).send({
                 users: listOnlUsers,

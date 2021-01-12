@@ -146,7 +146,7 @@ module.exports.getListFriend = async function (req, res, next) {
         }
 
         res.status(StatusResponseConfig.Ok).send(listFriend);
-        console.log(`[GetListFriend] - Success: ${listFriend}`);
+        console.log(`[GetListFriend] - Success: friends ${listFriend.length}`);
     } catch (error) {
         res.status(StatusResponseConfig.Error).send({ message: error });
         console.log(`[GetListFriend] - Error: ${error}`);

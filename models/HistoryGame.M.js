@@ -1,8 +1,10 @@
 const mongoose = require('mongoose');
+const Board = require('./Board.M');
+const Account = require("./Account.M");
 
 const HistoryStepSchema = mongoose.Schema({
     player:{
-        type: Number,
+        type: Number,  //owner is 1, player is 2 
         require: true,
     },
     index:{
@@ -80,6 +82,11 @@ const HistoryGameSchema = mongoose.Schema({
 HistoryGameSchema.pre('save', async function(next){
     try {
      const account = await Account.findById({_id: this.ownerID});
+     await Board.findOneAndUpdate({_id: this.boardID},
+        {
+            history: this._id
+        });
+
      await account.matches.push(this._id);
      await account.save();
      next();
