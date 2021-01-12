@@ -3,6 +3,10 @@ const Utils = require('../utils/Utils');
 const StatusConstant = require('../config/StatusResponseConfig');
 const AccountConstant = require('../config/Account.Cfg');
 const StatusResponseConfig = require('../config/StatusResponseConfig');
+const mongoose = require('mongoose');
+const ObjectId = mongoose.Types.ObjectId;
+const History = require('../models/HistoryGame.M');
+const Friend = require('../models/Friend.M');
 
 
 module.exports.getListUser = async function(req, res, next){
@@ -54,8 +58,99 @@ module.exports.getUserProfile = async function(req, res, next)
 };
 
 
+/*
+    GET LIST HISTORY
+    - USER Id: string
+ */
+module.exports.getListHistory = async function (req, res, next) {
+    const userId = req.query.userId;
+    // id is not valid
+    if (!ObjectId.isValid(userId)) {
+        res.status(StatusResponseConfig.Error).send({ message: "Wrong id data !!" });
+        console.log(`[GetListHistory] - Wrong Id - UserId: ${userId}`);
+        return;
+    }
 
+    try {
+        const listHistory_1 = await History.find({ "ownerID": userId }).exec();
+        const listHistory_2 = await History.find({ "playerID": userId }).exec();
+        const listHistory = [];
 
+        for (var i = 0; i < listHistory_1.length; i++) {
+            var element = {};
+            element._id = listHistory_1[i]._id;
+            element.me_fullname = (await Account.findById(listHistory_1[i].ownerID))["fullname"];
+            element.me_id = listHistory_1[i].ownerID;
+            element.enemy_fullname = (await Account.findById(listHistory_1[i].playerID))["fullname"];
+            element.enemy_id = listHistory_1[i].playerID;
+            element.result = listHistory_1[i].result === 1 ? 1 : 0;
+            element.chats = listHistory_1[i].messages;
+            element.stepHistory = listHistory_1[i].history;
+            element.time = Utils.formatDate(listHistory_1[i].createdTime);
+
+            listHistory.push(element);
+        }
+
+        for (var i = 0; i < listHistory_2.length; i++) {
+            var element = {};
+            element._id = listHistory_2[i]._id;
+            element.enemy_fullname = await Account.findById(listHistory_2[i].ownerID).exec()['fullname'];
+            element.enemy_id = listHistory_2[i].ownerID;
+            element.me_fullname = await Account.findById(listHistory_2[i].playerID).exec()['fullname'];
+            element.me_id = listHistory_2[i].playerID;
+            element.result = listHistory_2[i].result === 2 ? 1 : 0;
+            element.chats = listHistory_2[i].messages;
+            element.stepHistory = listHistory_2[i].history;
+            element.time = Utils.formatDate(listHistory_2[i].createdTime);
+
+            listHistory.push(element);
+        }
+
+        // console.log(listHistory);
+
+        res.status(StatusResponseConfig.Ok).send(listHistory);
+        console.log(`[GetListHistory] - Success: ${listHistory}`);
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
+        console.log(`[GetListHistory] - Error: ${error}`);
+    }
+};
+
+/*
+    GET LIST FRIEND
+    - USER Id: string
+ */
+module.exports.getListFriend = async function (req, res, next) {
+    const userId = req.query.userId;
+    // id is not valid
+    if (!ObjectId.isValid(userId)) {
+        res.status(StatusResponseConfig.Error).send({ message: "Wrong id data !!" });
+        console.log(`[GetListFriend] - Wrong Id - UserId: ${userId}`);
+        return;
+    }
+
+    try {
+        const listFriend_1 = await Friend.find({ "user01": userId }).exec();
+        const listFriend_2 = await Friend.find({ "user02": userId }).exec();
+        const listFriend = [];
+
+        for (var i = 0; i < listFriend_1.length; i++) {
+            var others = await Account.findById(listFriend_1[i]['user02']);
+            listFriend.push(others);
+        }
+
+        for (var i = 0; i < listFriend_2.length; i++) {
+            var others = await Account.findById(listFriend_2[i]['user01']);
+            listFriend.push(others);
+        }
+
+        res.status(StatusResponseConfig.Ok).send(listFriend);
+        console.log(`[GetListFriend] - Success: ${listFriend}`);
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
+        console.log(`[GetListFriend] - Error: ${error}`);
+    }
+};
 
 
 

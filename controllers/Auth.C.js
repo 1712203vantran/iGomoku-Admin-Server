@@ -24,7 +24,7 @@ module.exports.signIn = async function(req, res, next)
     try {
         const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
         if(!account){
-            res.status(StatusResponseConfig.Error).send({message: "Account is not exist!"});
+            res.status(StatusResponseConfig.Error).send({message: "Incorrect Username or Password. Please try again."});
         }
         else if (account.accountStatus === 1 || account.accountStatus === 2) {// account blocked
             res.status(StatusResponseConfig.Error).send({message: "Account is blocked"});
