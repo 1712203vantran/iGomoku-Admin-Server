@@ -14,4 +14,6 @@ router.get('/list-history', AdminController.getListHistory);
 
 router.get('/list-friend', AdminController.getListFriend);
 
+router.get('/history', AdminController.getHistory);
+
 module.exports = router;

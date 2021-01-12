@@ -472,7 +472,7 @@ module.exports.getHistory = async function (req, res, next) {
             result.enemy_fullname = (await Account.findById(history.ownerID))['fullname'];
             result.enemy_id = history.ownerID;
             result.me_fullname = (await Account.findById(history.playerID))['fullname'];
-            result.me_id = lhistory.playerID;
+            result.me_id = history.playerID;
             result.result = history.result === 2 ? 1 : 0;
         }
 
