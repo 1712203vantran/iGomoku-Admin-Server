@@ -412,7 +412,7 @@ module.exports.getListHistory = async function (req, res, next) {
             element.result = listHistory_1[i].result === 1 ? 1 : 0;
             element.chats = listHistory_1[i].messages;
             element.stepHistory = listHistory_1[i].history;
-            element.time = Utils.formatDate(listHistory_1[i].createdTime);
+            element.time = Utils.parseDateTime(listHistory_1[i].createdTime);
 
             listHistory.push(element);
         }
@@ -427,7 +427,7 @@ module.exports.getListHistory = async function (req, res, next) {
             element.result = listHistory_2[i].result === 2 ? 1 : 0;
             element.chats = listHistory_2[i].messages;
             element.stepHistory = listHistory_2[i].history;
-            element.time = Utils.formatDate(listHistory_2[i].createdTime);
+            element.time = Utils.parseDateTime(listHistory_2[i].createdTime);
 
             listHistory.push(element);
         }
