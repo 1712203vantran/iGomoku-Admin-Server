@@ -6,6 +6,9 @@ router.get('/list-payment', UserController.getListPayment);
 
 router.get('/list-friend', UserController.getListFriend);
 
+router.get('/bxh', UserController.getBXH);
+
+
 router.get('/list-history', UserController.getListHistory);
 
 router.get('/list-friend-invitation', UserController.getListFriendInvitation);
