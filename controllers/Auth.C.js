@@ -3,6 +3,7 @@ const EmailSender = require('../config/nodemailer');
 //const sendResetPasswordMail = require('../config/nodemailer');
 const Account = require('../models/Account.M');
 const jwtCfg = require('../config/JWT.Cfg');
+const ACCfg = require('../config/Account.Cfg');
 const jwt = require("jsonwebtoken");
 // config
 const StatusResponseConfig = require('../config/StatusResponseConfig');
@@ -26,7 +27,7 @@ module.exports.signIn = async function(req, res, next)
         if(!account){
             res.status(StatusResponseConfig.Error).send({message: "Incorrect Username or Password. Please try again."});
         }
-        else if (account.accountStatus === 1 || account.accountStatus === 2) {// account blocked
+        else if (account.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_BLOCKED || account.accountStatus === ACCfg.ACCOUNT_STATUS_VERIFIED_BLOCKED) {// account blocked
             res.status(StatusResponseConfig.Error).send({message: "Account is blocked"});
         }
         else{// Login successfully
@@ -306,7 +307,7 @@ module.exports.sendVerifyEmail = async function(req, res, next)
         else if (!validateEmail(account.email)) {
             res.status(StatusResponseConfig.Error).send({message: "Invalid email address"});
         }
-        else if (account.accountStatus === 0 || account.accountStatus === 2) {
+        else if (account.accountStatus === ACCfg.ACCOUNT_STATUS_VERIFIED_ACTIVE || account.accountStatus === ACCfg.ACCOUNT_STATUS_VERIFIED_BLOCKED) {
             res.status(StatusResponseConfig.Error).send({message: "Account had already been verified"});
         }
         else{// send email
@@ -364,7 +365,8 @@ module.exports.verifiedEmail = async function(req, res, next)
                 if (uID1 === uID2 && uID2 === uID3) { //really exactly
                     ///// cập nhật account status trong DB
                     const profile = await Account.findById(uID1);
-                    let newAccountStatus = ((profile.accountStatus === -1) ? 0 : (profile.accountStatus === 1 ? 2 : profile.accountStatus));
+                    //let newAccountStatus = ((profile.accountStatus === -1) ? 0 : (profile.accountStatus === 1 ? 2 : profile.accountStatus));
+                    let newAccountStatus = ((profile.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_ACTIVE) ? ACCfg.ACCOUNT_STATUS_VERIFIED_ACTIVE : (profile.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_BLOCKED ? ACCfg.ACCOUNT_STATUS_VERIFIED_BLOCKED : profile.accountStatus));
                     try {
                         const updatedStatusAccount = await Account.updateOne(
                             {_id: uID1},
@@ -407,7 +409,7 @@ module.exports.sendResetPasswordEmail = async function(req, res, next)
         if(!account){
             res.status(StatusResponseConfig.Error).send({message: "Account is not exist!"});
         }
-        else if (account.accountStatus === -1 || account.accountStatus === 1) {
+        else if (account.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_ACTIVE || account.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_BLOCKED) {
             res.status(StatusResponseConfig.Error).send({message: "We're sorry but your account hasn't been verified to use this feature yet"});
         }
         else if (account.email !== email) {
