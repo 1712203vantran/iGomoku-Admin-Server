@@ -44,8 +44,6 @@ module.exports.createBoard = async function (req, res, next) {
         })
 
         const createdHistory = await history.save();
-        console.log(createdHistory);
-
         //realtime invite for player
         realTimeActions.updateBoardActiveList(socketID, {
             owner: {
@@ -68,7 +66,6 @@ module.exports.createBoard = async function (req, res, next) {
                 _id: player._id,
             });
         }
-        console.log({role: savedBoard.role});
         return res.status(StatusConstant.Ok).send(savedBoard);
     } catch (error) {
         res.status(StatusConstant.Error).send({ message: error });
