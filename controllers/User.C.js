@@ -353,6 +353,13 @@ module.exports.getListFriend = async function (req, res, next) {
             listFriend.push(others);
         }
 
+        
+        for(var k = 0; k < listFriend.length; k++){
+            const userId = listFriend[k]['_id'];
+            listFriend[k]["winrate"] = await getWinrate(userId);
+        }
+
+
         res.status(StatusResponseConfig.Ok).send(listFriend);
         console.log(`[GetListFriend] - Success: friendd ${listFriend.length}`);
     } catch (error) {
@@ -503,6 +510,10 @@ module.exports.getBXH = async function (req, res, next) {
             .limit(15)
             .exec();
 
+        for(var k = 0; k < users.length; k++){
+            const userId = users[k]['_id'];
+            users[k]["winrate"] = await getWinrate(userId);
+        }
 
         res.status(StatusResponseConfig.Ok).send(users);
         console.log(`[GetBXH] - Success: ${users}`);
