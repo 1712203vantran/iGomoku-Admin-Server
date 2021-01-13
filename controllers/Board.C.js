@@ -5,7 +5,6 @@ const BoardConstants = require('../config/Board.Cfg');
 const {realTimeActions} = require('../socket.io');
 const History = require('../models/HistoryGame.M');
 
-
 /*
     CREATE BOARD
     - userId: string
@@ -36,6 +35,16 @@ module.exports.createBoard = async function (req, res, next) {
     try {
         const savedBoard = await createdBoard.save();
         console.log(`[CreateNewBoard] - By ${userID} - Board: ${savedBoard._id}`);
+
+        const history = new History({
+            ownerID: userID,
+            boardID: savedBoard._id,
+            eloGot: BoardConstants.DEFAULT_ELO,
+            boardStatus: BoardConstants.CREATE_STATUS
+        })
+
+        const createdHistory = await history.save();
+        console.log(createdHistory);
 
         //realtime invite for player
         realTimeActions.updateBoardActiveList(socketID, {
@@ -134,7 +143,7 @@ module.exports.playerJoinBoard = async function (req, res, next) {
         //get board 's infomation
         const boardInfo = await Board.findById({_id: boardID}).exec();
         //check if player null => second person is player else become watcher
-        if (boardInfo) 
+        if (boardInfo && !boardInfo.owner.equals(playerID)) 
         {
             if (boardInfo.player === null || boardInfo.player.equals(playerID))
             {
@@ -149,6 +158,14 @@ module.exports.playerJoinBoard = async function (req, res, next) {
                     {new: true},
                 );
                 joinBoard.role = BoardConstants.PLAYER_ROLE;
+                //update historyinfo
+                await History.findOneAndUpdate({boardID: boardID},
+                    {
+                        playerID: playerID
+                    },
+                    {new: true},
+                    );
+                //create history game whe use join board 
                 console.log(`[PlayerJoinBoard] - BoardId ${boardID} - PlayerId ${playerID}`);
                 realTimeActions.notifyUser(boardID, playerID, boardInfo.owner.toString());
                 return res.status(StatusConstant.Ok).send(joinBoard);
@@ -283,6 +300,7 @@ module.exports.getInfoOfTwoPlayer = async function(req,res,next) {
         const board = await Board.findById({_id: boardID})
         .populate({path: "owner",select: "fullname elo"})
         .populate({path: "player",select: "fullname elo"})
+        .populate({path: "history"})
         .exec();
         console.log(`[GetBoard] - Success ${board._id}`);
         return res.status(StatusConstant.Ok).send(board);

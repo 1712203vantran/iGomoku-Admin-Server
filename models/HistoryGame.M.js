@@ -1,11 +1,29 @@
 const mongoose = require('mongoose');
+const Board = require('./Board.M');
+const Account = require("./Account.M");
 
 const HistoryStepSchema = mongoose.Schema({
-    position:{
-        type: Number,
+    player:{
+        type: Number,  //owner is 1, player is 2 
         require: true,
     },
+    index:{
+        type: Number,
+        require: true,
+    }
 });
+
+const MessageSchema = mongoose.Schema({
+    talker:{
+        type: String,
+        require: true,
+    },
+    message:{
+        type: String,
+        require: true,
+    }
+});
+
 
 // History Game Scheme
 /*
@@ -27,11 +45,11 @@ const HistoryGameSchema = mongoose.Schema({
     },
     playerID: {
         type: String,
-        required: true
+        
     },
     boardID: {
-        type: String,
-        required: true
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Board",
     },
     createdTime: {
         type: Date,
@@ -39,11 +57,11 @@ const HistoryGameSchema = mongoose.Schema({
     },
     result: {
         type: Number,
-        required: true
+        default: 0
     },
     history: {
         type: [HistoryStepSchema],
-        
+        default: []
     },
     eloGot: {
         type: Number,
@@ -54,12 +72,44 @@ const HistoryGameSchema = mongoose.Schema({
         default: [],
     },
     messages: {
-        type: Array,
+        type: [MessageSchema],
         default: [],
     }
 });
 
 
+//mapping boardId to account everytime create new board
+HistoryGameSchema.pre('save', async function(next){
+    try {
+     const account = await Account.findById({_id: this.ownerID});
+     await Board.findOneAndUpdate({_id: this.boardID},
+        {
+            history: this._id
+        });
+
+     await account.matches.push(this._id);
+     await account.save();
+     next();
+    } catch (error) {
+        console.log({error});
+        next(error);
+    }
+ 
+ });
+ 
+ HistoryGameSchema.pre("update", async function(next){
+     try {
+         
+         const account = await Account.findById({_id: this.playerID});
+         account.matches.push(this._id);
+         await account.save();
+         next();
+        } catch (error) {
+            console.log({error});
+            next(error);
+        }
+     
+ });
 
 
 module.exports = mongoose.model('HistoryGame', HistoryGameSchema);;

@@ -29,3 +29,9 @@ module.exports.formatDate = function (today) {
 
     return today;
 };
+
+module.exports.parseDateTime = function (dateSting) {
+    let seperator = "/";
+    let date = new Date( Date.parse(dateSting) );
+    return [("0" + date.getDate()).slice(-2), ("0" + (date.getMonth() + 1)).slice(-2), date.getFullYear()].join(seperator) + ' ' + [("0" + date.getHours()).slice(-2), ("0" + date.getMinutes()).slice(-2)].join(':');
+};

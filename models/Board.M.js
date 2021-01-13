@@ -47,36 +47,13 @@ const BoardSchema = mongoose.Schema({
     watchers: {
         type: Array,
         default: []
+    },
+    history: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "HistoryGame",
     }
 });
 
-//mapping boardId to account everytime create new board
-BoardSchema.pre('save', async function(next){
-   try {
-    const account = await Account.findById({_id: this.owner});
-    await account.matches.push(this._id);
-    await account.save();
-    next();
-   } catch (error) {
-       console.log({error});
-       next(error);
-   }
-
-});
-
-BoardSchema.pre("update", async function(next){
-    try {
-        
-        const account = await Account.findById({_id: this.player});
-        account.matches.push(this._id);
-        await account.save();
-        next();
-       } catch (error) {
-           console.log({error});
-           next(error);
-       }
-    
-});
 
 
 module.exports = mongoose.model('Board', BoardSchema);

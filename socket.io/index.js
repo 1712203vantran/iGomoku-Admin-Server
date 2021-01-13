@@ -31,12 +31,9 @@ const configSocketIO = (server) =>{
                 const user = await Account.findById({_id: decoded.userID}).exec();
                 if (user)
                 {
-                    const isSuccess = ListOnlineUser.addNewUserConnect(user, socket.id);
-                    if(isSuccess)
-                    {
-                        //thông báo tới tất cả các socket đang kết nối người dùng đã đăng nhập
-                        io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {user});
-                    }
+                    ListOnlineUser.addNewUserConnect(user, socket.id);
+                    //thông báo tới tất cả các socket đang kết nối người dùng đã đăng nhập
+                    io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {user});
                 }
             }catch(error)
             {
@@ -125,11 +122,8 @@ const configSocketIO = (server) =>{
 const realTimeActions = {
     //realtime actions for User List
     updateOnlineUserList: (user, socketID)=>{
-        const isSuccess = ListOnlineUser.addNewUserConnect(user, socketID);
-        if(isSuccess)
-        {
-            io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {user});
-        }   
+        ListOnlineUser.addNewUserConnect(user, socketID);
+        io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {user});   
     },
     //send invite to join game from challenger
     sendInviteToPlayer: (boardID, player) =>{
@@ -158,6 +152,7 @@ const realTimeActions = {
         //ownerID
         const socketOwnerID = ListOnlineUser.getSocketIDByuserID(ownerID);
         const socketPlayerID = ListOnlineUser.getSocketIDByuserID(playerID);
+        console.log({result: socketOwnerID && socketPlayerID})
         if (socketOwnerID && socketPlayerID)
         {
             console.log(`[Board]: notify ${socketPlayerID} & ${socketPlayerID}`);

@@ -8,24 +8,23 @@ const ListOnlineUser = {
     //get user's info by userID and add new user to list online user
     //input: user.userID ,  socket: socket of client 
     addNewUserConnect: (user, socketID) =>{
-      
         const newClient = Object.assign({},user.toJSON());
         newClient.socketID = socketID;
-    
-        if (clients.length === 0)
+        
+       if(clients.some((client) => client._id.equals(newClient._id)))
         {
-            clients.push(newClient);
-            return true;
-        }
-        const isContain = clients.some((client) => client._id.equals(newClient._id));
-        if (isContain)
-        {
-           return false;
+            clients = clients.map(client =>{
+                if (client._id.equals(newClient._id))
+                {
+                    return newClient;
+                }
+                return client;
+            });
         }
         else{
-            clients.push(newClient); 
-            return true;
+            clients.push(newClient);
         }
+        console.log(clients.length);
     },
 
     getListOnlineUser: () =>{

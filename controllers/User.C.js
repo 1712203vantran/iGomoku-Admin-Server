@@ -317,7 +317,7 @@ module.exports.getListFriendInvitation = async function (req, res, next) {
 
 
         res.status(StatusResponseConfig.Ok).send(result);
-        console.log(`[GetListFriendInvitation] - Success: ${listInvitation}`);
+        console.log(`[GetListFriendInvitation] - Success: friends ${listInvitation.length}`);
     } catch (error) {
         res.status(StatusResponseConfig.Error).send({ message: error });
         console.log(`[GetListFriendInvitation] - Error: ${error}`);
@@ -354,7 +354,7 @@ module.exports.getListFriend = async function (req, res, next) {
         }
 
         res.status(StatusResponseConfig.Ok).send(listFriend);
-        console.log(`[GetListFriend] - Success: ${listFriend}`);
+        console.log(`[GetListFriend] - Success: friendd ${listFriend.length}`);
     } catch (error) {
         res.status(StatusResponseConfig.Error).send({ message: error });
         console.log(`[GetListFriend] - Error: ${error}`);
@@ -413,7 +413,7 @@ module.exports.getListHistory = async function (req, res, next) {
             element.result = listHistory_1[i].result === 1 ? 1 : 0;
             element.chats = listHistory_1[i].messages;
             element.stepHistory = listHistory_1[i].history;
-            element.time = Utils.formatDate(listHistory_1[i].createdTime);
+            element.time = Utils.parseDateTime(listHistory_1[i].createdTime);
 
             listHistory.push(element);
         }
@@ -428,7 +428,7 @@ module.exports.getListHistory = async function (req, res, next) {
             element.result = listHistory_2[i].result === 2 ? 1 : 0;
             element.chats = listHistory_2[i].messages;
             element.stepHistory = listHistory_2[i].history;
-            element.time = Utils.formatDate(listHistory_2[i].createdTime);
+            element.time = Utils.parseDateTime(listHistory_2[i].createdTime);
 
             listHistory.push(element);
         }
@@ -473,7 +473,7 @@ module.exports.getHistory = async function (req, res, next) {
             result.enemy_fullname = (await Account.findById(history.ownerID))['fullname'];
             result.enemy_id = history.ownerID;
             result.me_fullname = (await Account.findById(history.playerID))['fullname'];
-            result.me_id = lhistory.playerID;
+            result.me_id = history.playerID;
             result.result = history.result === 2 ? 1 : 0;
         }
 
