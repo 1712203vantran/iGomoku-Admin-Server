@@ -8,6 +8,10 @@ const jwt = require("jsonwebtoken");
 const StatusResponseConfig = require('../config/StatusResponseConfig');
 const { realTimeActions } = require('../socket.io');
 
+const bcrypt = require("bcryptjs");
+const ACCfg = require('../config/Account.Cfg');
+const SALT_ROUNDS = ACCfg.SALT_ROUNDS;
+
 /*
     SIGN IN
     - Username
@@ -17,28 +21,34 @@ const { realTimeActions } = require('../socket.io');
 module.exports.signIn = async function(req, res, next)
 {
     const username = req.body.username;
-    const password = req.body.password;
+    const plaintextPassword = req.body.password;
+    //const password = bcrypt.hashSync(plaintextPassword, SALT_ROUNDS);
     const permission = parseInt(req.body.permission);
     const socketID = req.body.socketID;
 
     try {
-        const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
+        const account = await Account.findOne({ "username": username, "permission": permission}).exec();
         if(!account){
-            res.status(StatusResponseConfig.Error).send({message: "Incorrect Username or Password. Please try again."});
+            res.status(StatusResponseConfig.Error).send({message: "Account not found."});
         }
-        else if (account.accountStatus === 1 || account.accountStatus === 2) {// account blocked
-            res.status(StatusResponseConfig.Error).send({message: "Account is blocked"});
-        }
-        else{// Login successfully
-            var payload = { userID: account._id };
-            var token = jwt.sign(payload, jwtCfg.secret);
-            //realtime when new user signin to server
-            realTimeActions.updateOnlineUserList(account, socketID);
-
-            res.status(StatusResponseConfig.Ok).json({
-                token: token,
-                account: account
-              });
+        else {  // account exist
+            if(!bcrypt.compareSync(plaintextPassword, account.password)){
+                res.status(StatusResponseConfig.Error).send({message: "Incorrect Username or Password. Please try again."});
+            }
+            else if (account.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_BLOCKED || account.accountStatus === ACCfg.ACCOUNT_STATUS_VERIFIED_BLOCKED) {// account blocked
+                res.status(StatusResponseConfig.Error).send({message: "Account is blocked"});
+            }
+            else{// Login successfully
+                var payload = { userID: account._id };
+                var token = jwt.sign(payload, jwtCfg.secret);
+                //realtime when new user signin to server
+                realTimeActions.updateOnlineUserList(account, socketID);
+    
+                res.status(StatusResponseConfig.Ok).json({
+                    token: token,
+                    account: account
+                });
+            }
         }
     }catch(error) {
         console.log({error});
@@ -174,10 +184,12 @@ module.exports.signInFacebook = async function(req, res, next)
  */
 module.exports.signUp = async function(req, res, next)
 {
+    const plaintextPassword = req.body.password;
+    const password = bcrypt.hashSync(plaintextPassword, SALT_ROUNDS);
     // create new account
     const account = new Account({
         username: req.body.username,
-        password: req.body.password,
+        password: password,
         fullname: req.body.fullname,
         email: req.body.email,
         permission: parseInt(req.body.permission)
@@ -257,15 +269,17 @@ module.exports.getProfile = async function(req, res, next)
 module.exports.changePassword = async function(req, res, next)
 {
     const id = req.body.userId;
-    const password = req.body.password;
-    const newPassword = req.body.newPassword;
+    const plaintextPassword = req.body.password;
+    //const password = bcrypt.hashSync(plaintextPassword, SALT_ROUNDS);
+    const plaintextNewPassword = req.body.newPassword;
+    const newPassword = bcrypt.hashSync(plaintextNewPassword, SALT_ROUNDS);
 
     const account = await Account.findById(id);
 
     // case user input old password wrong
-    console.log(password);
-    console.log(account.password);
-    if(account.password !== password){
+    // console.log(password);
+    // console.log(account.password);
+    if(!bcrypt.compareSync(plaintextPassword, account.password)){
         console.log("wrong password");
         res.status(StatusResponseConfig.Error).send({message: "Password is wrong"});
         return;
@@ -306,7 +320,7 @@ module.exports.sendVerifyEmail = async function(req, res, next)
         else if (!validateEmail(account.email)) {
             res.status(StatusResponseConfig.Error).send({message: "Invalid email address"});
         }
-        else if (account.accountStatus === 0 || account.accountStatus === 2) {
+        else if (account.accountStatus === ACCfg.ACCOUNT_STATUS_VERIFIED_ACTIVE || account.accountStatus === ACCfg.ACCOUNT_STATUS_VERIFIED_BLOCKED) {
             res.status(StatusResponseConfig.Error).send({message: "Account had already been verified"});
         }
         else{// send email
@@ -364,7 +378,8 @@ module.exports.verifiedEmail = async function(req, res, next)
                 if (uID1 === uID2 && uID2 === uID3) { //really exactly
                     ///// cập nhật account status trong DB
                     const profile = await Account.findById(uID1);
-                    let newAccountStatus = ((profile.accountStatus === -1) ? 0 : (profile.accountStatus === 1 ? 2 : profile.accountStatus));
+                    //let newAccountStatus = ((profile.accountStatus === -1) ? 0 : (profile.accountStatus === 1 ? 2 : profile.accountStatus));
+                    let newAccountStatus = ((profile.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_ACTIVE) ? ACCfg.ACCOUNT_STATUS_VERIFIED_ACTIVE : (profile.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_BLOCKED ? ACCfg.ACCOUNT_STATUS_VERIFIED_BLOCKED : profile.accountStatus));
                     try {
                         const updatedStatusAccount = await Account.updateOne(
                             {_id: uID1},
@@ -407,7 +422,7 @@ module.exports.sendResetPasswordEmail = async function(req, res, next)
         if(!account){
             res.status(StatusResponseConfig.Error).send({message: "Account is not exist!"});
         }
-        else if (account.accountStatus === -1 || account.accountStatus === 1) {
+        else if (account.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_ACTIVE || account.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_BLOCKED) {
             res.status(StatusResponseConfig.Error).send({message: "We're sorry but your account hasn't been verified to use this feature yet"});
         }
         else if (account.email !== email) {
@@ -415,16 +430,16 @@ module.exports.sendResetPasswordEmail = async function(req, res, next)
         }
         else{// send email
             const userID = account._id;
-            //const newPassword = "newPassword";
             const newPassword = makeRandomPassword(8);
             
             ////////// cập nhật password mới vào DB
             try {
+                const newHashedPassword = bcrypt.hashSync(newPassword, SALT_ROUNDS);
                 const changedPassword = await Account.updateOne(
                     {_id: userID},
                     { $set: 
                         {
-                            password: newPassword
+                            password: newHashedPassword
                         }
                     }
                 );

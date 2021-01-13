@@ -1,7 +1,7 @@
 // AUTH
 1. sign in (POST)
 - username: string
-- password: string
+- password: string (password được mã hóa bằng bcrypt)
 - permission: number (0-admin, 1-user)
 * url: /auth/signin
 ** Bổ sung việc xác thực bằng jwt => gửi token cho Client sau khi xác thực đăng nhập thành công
