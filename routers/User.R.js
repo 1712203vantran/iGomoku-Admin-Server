@@ -7,7 +7,9 @@ router.get('/list-payment', AuthUtils.authenticateJWT, UserController.getListPay
 
 router.get('/list-friend', AuthUtils.authenticateJWT,UserController.getListFriend);
 
-router.get('/list-history',AuthUtils.authenticateJWT, UserController.getListHistory);
+router.get('/bxh', AuthUtils.authenticateJWT, UserController.getBXH);
+
+router.get('/list-history', AuthUtils.authenticateJWT, UserController.getListHistory);
 
 router.get('/list-friend-invitation', AuthUtils.authenticateJWT, UserController.getListFriendInvitation);
 

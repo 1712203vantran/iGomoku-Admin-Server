@@ -70,6 +70,10 @@ const AccountSchema = mongoose.Schema({
     autoMatch: {
         type: Boolean,
         default: false,
+    },
+    winrate: {
+        type: Number,
+        default: 0
     }
 });
 
