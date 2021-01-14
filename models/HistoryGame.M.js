@@ -55,10 +55,6 @@ const HistoryGameSchema = mongoose.Schema({
         type: Date,
         default: new Date()
     },
-    result: {
-        type: Number,
-        default: 0
-    },
     history: {
         type: [HistoryStepSchema],
         default: []
@@ -86,29 +82,11 @@ HistoryGameSchema.pre('save', async function(next){
         {
             history: this._id
         });
-
-     await account.matches.push(this._id);
-     await account.save();
-     next();
     } catch (error) {
         console.log({error});
         next(error);
     }
  
- });
- 
- HistoryGameSchema.pre("update", async function(next){
-     try {
-         
-         const account = await Account.findById({_id: this.playerID});
-         account.matches.push(this._id);
-         await account.save();
-         next();
-        } catch (error) {
-            console.log({error});
-            next(error);
-        }
-     
  });
 
 

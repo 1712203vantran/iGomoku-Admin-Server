@@ -156,12 +156,12 @@ module.exports.playerJoinBoard = async function (req, res, next) {
                 );
                 joinBoard.role = BoardConstants.PLAYER_ROLE;
                 //update historyinfo
-                await History.findOneAndUpdate({boardID: boardID},
-                    {
-                        playerID: playerID
-                    },
-                    {new: true},
-                    );
+                // await History.findOneAndUpdate({boardID: boardID},
+                //     {
+                //         playerID: playerID
+                //     },
+                //     {new: true},
+                //     );
                 //create history game whe use join board 
                 console.log(`[PlayerJoinBoard] - BoardId ${boardID} - PlayerId ${playerID}`);
                 realTimeActions.notifyUser(boardID, playerID, boardInfo.owner.toString());

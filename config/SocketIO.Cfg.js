@@ -17,6 +17,7 @@ const EVENT_NAMES = {
     ACCEPT_INVITE: "accept-invite",
     JOIN_BOARD: "join-board",
     START_GAME: "start-game",
+    RESPONSE_WINNER: 'response-winner',
     RESPONSE_NEW_BOARD: "new-board",
     MSG_FROM_CLIENT: "send-message",
     MSG_TO_CLIENT: "receive-message",
