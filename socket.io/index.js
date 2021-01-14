@@ -20,18 +20,25 @@ const configSocketIO = (server) =>{
         console.log(`Socket [${socket.id}]: connected.`);
         //socket managerment anonymous user & sign in user 
         SocketManager.push(socket);
+
+        BoardManager.setIo(io);
         //user already login before(has jwt token), open another tab
         socket.on(EVENT_NAMES.REQUEST_USER_ONLINE, async ({jwtToken, status})=>{
             try{    
                 const decoded = await AuthUtils.verifyJwtToken(jwtToken, JWTCfg.secret);              
                 const user = await Account.findById({_id: decoded.userID}).exec();
+                
                 if (user)
                 {
-                    const newUser  = Object.assign({isFree: status}, user.toJSON());
-                    //.log(newUser);
-                    ListOnlineUser.addNewUserConnect(newUser, socket.id);
+                    //console.log(`re sign in user${socket.id}`);
+                    const newUser  = Object.assign({
+                        isFree: status,
+                        socketID: socket.id
+                    }, user.toJSON());
+                    //console.log(newUser);
+                    ListOnlineUser.addNewUserConnect(newUser);
                     //thông báo tới tất cả các socket đang kết nối người dùng đã đăng nhập
-                    io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {newUser});
+                    io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {user: newUser});
                 }
             }catch(error)
             {
@@ -61,9 +68,23 @@ const configSocketIO = (server) =>{
 
         socket.on(EVENT_NAMES.START_GAME, ({boardID}) =>{
             BoardManager.startGame(boardID);
-            console.log("Start game");
+            //console.log("Start game");
         });
 
+        socket.on(EVENT_NAMES.REQUEST_RECONNECT, ({ boardID }) => {
+            const board = BoardManager.getBoardByID(boardID);
+      
+            if (board) {
+                board.gameController.reConnect(socket.id);
+            }
+          });
+
+        socket.on(EVENT_NAMES.REQUEST_UPDATE_PLAYER_INFO, ({boardID,owner,player})=>{
+            socket.to(boardID).emit(EVENT_NAMES.RESPONSE_UPDATE_PLAYER_INFO, {
+                owner,
+                player
+            });
+        })
         //nhận tin nhắn và gửi cho những người khác trong phòng
         socket.on(EVENT_NAMES.MSG_FROM_CLIENT, (data)=>{
             const dataRevice = JSON.parse(data);
@@ -85,19 +106,22 @@ const configSocketIO = (server) =>{
             if (userID)
             {
                 ListOnlineUser.removeUser(socket.id);
+                //BoardManager.leaveBoard(socket.id);
                 io.emit(EVENT_NAMES.RESPONSE_USER_OFFLINE, {userID});
             }
         });
     });
-}
-
+};
 
 const realTimeActions = {
     //realtime actions for User List
     updateOnlineUserList: (user, socketID)=>{
-        ListOnlineUser.addNewUserConnect(user, socketID);
-        const newUser  = Object.assign({isFree: status}, user.toJSON());
-        io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {newUser});   
+        const newUser = Object.assign({
+            isFree: 1,
+            socketID: socketID
+        }, user.toJSON());
+        ListOnlineUser.addNewUserConnect(newUser);
+        io.emit(EVENT_NAMES.RESPONSE_USER_ONLINE, {user: newUser});   
     },
     //send invite to join game from challenger
     sendInviteToPlayer: (boardID, player) =>{
@@ -116,7 +140,6 @@ const realTimeActions = {
         {
             console.log(`[Board]: Realtime ${socketJoin.id} join ${newBoard._id}`);
             //socketJoin.join(newBoard._id.toString());
-            //BoardManager.push(newBoard);
             io.emit(EVENT_NAMES.RESPONSE_NEW_BOARD, {newBoard});
         }    
         
@@ -126,11 +149,13 @@ const realTimeActions = {
         //ownerID
         const socketOwnerID = ListOnlineUser.getSocketIDByuserID(ownerID);
         const socketPlayerID = ListOnlineUser.getSocketIDByuserID(playerID);
-        console.log({result: socketOwnerID && socketPlayerID})
+        console.log({socketOwnerID,socketPlayerID})
         if (socketOwnerID && socketPlayerID)
         {
-            console.log(`[Board]: notify ${socketPlayerID} & ${socketPlayerID}`);
-            io.to(socketOwnerID).to(socketPlayerID).emit(EVENT_NAMES.JOIN_BOARD, {boardID});
+            console.log(`[Board]: notify ${socketOwnerID} & ${socketPlayerID}`);
+            io.to(socketPlayerID).emit(EVENT_NAMES.JOIN_BOARD, {boardID});
+            io.to(socketOwnerID).emit(EVENT_NAMES.JOIN_BOARD, {boardID});
+           
         }        
     }
 }

@@ -9,11 +9,9 @@ const mongoDBConnnection = require('./db/mongoDB');
 const realtime = require('./socket.io');
 const AuthUtils = require('./utils/Auth.Utils');
 
-const PORT = process.env.PORT || 8000;
-
 //load from .en file
 require('dotenv').config();
-
+const PORT = process.env.PORT || 8000;
 //socket.io initial  
 const server = http.createServer(app);
 

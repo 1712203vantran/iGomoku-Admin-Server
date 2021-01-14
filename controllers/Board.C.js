@@ -149,7 +149,7 @@ module.exports.playerJoinBoard = async function (req, res, next) {
                     { $set: 
                         {
                             player: playerID,
-                            boardStatus: boardInfo.isPrivate? BoardConstants.WATING_STATUS: BoardConstants.INGAME_STATUS,
+                            //boardStatus: boardInfo.isPrivate? BoardConstants.WATING_STATUS: BoardConstants.INGAME_STATUS,
                         }
                     },
                     {new: true},
