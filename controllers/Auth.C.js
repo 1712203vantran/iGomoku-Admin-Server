@@ -2,6 +2,7 @@
 const EmailSender = require('../config/nodemailer');
 //const sendResetPasswordMail = require('../config/nodemailer');
 const Account = require('../models/Account.M');
+const HistoryGameM = require('../models/HistoryGame.M');
 const jwtCfg = require('../config/JWT.Cfg');
 const jwt = require("jsonwebtoken");
 // config
@@ -18,8 +19,7 @@ const SALT_ROUNDS = ACCfg.SALT_ROUNDS;
     - Password
     - Permission
  */
-module.exports.signIn = async function(req, res, next)
-{
+module.exports.signIn = async function (req, res, next) {
     const username = req.body.username;
     const plaintextPassword = req.body.password;
     //const password = bcrypt.hashSync(plaintextPassword, SALT_ROUNDS);
@@ -50,14 +50,13 @@ module.exports.signIn = async function(req, res, next)
                 });
             }
         }
-    }catch(error) {
-        console.log({error});
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        console.log({ error });
+        res.status(StatusResponseConfig.Error).send({ message: error });
     }
 };
 
-module.exports.signInGoogle = async function(req, res, next)
-{
+module.exports.signInGoogle = async function (req, res, next) {
     const username = req.body.username;
     const fullname = req.body.fullname;
     const email = req.body.email;
@@ -67,15 +66,15 @@ module.exports.signInGoogle = async function(req, res, next)
     const permission = parseInt(req.body.permission);
 
     //TODO: xác thực token
-    
+
     // check account is existed ?
-    try{
-        const f_account = await Account.findOne({'username': username }).exec();
-        if(f_account){  // account existed, check password
-            const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
-            if(!account){
-                res.status(StatusResponseConfig.Error).send({message: "Wrong login information!"});
-            }else{// Login successfully
+    try {
+        const f_account = await Account.findOne({ 'username': username }).exec();
+        if (f_account) {  // account existed, check password
+            const account = await Account.findOne({ "username": username, "password": password, "permission": permission }).exec();
+            if (!account) {
+                res.status(StatusResponseConfig.Error).send({ message: "Wrong login information!" });
+            } else {// Login successfully
                 var payload = { userID: account._id };
                 var token = jwt.sign(payload, jwtCfg.secret);
                 res.status(StatusResponseConfig.Ok).json({
@@ -85,13 +84,13 @@ module.exports.signInGoogle = async function(req, res, next)
             }
             return;
         }
-    } catch(error){
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
         return;
     }
 
     // create new account
-    try{
+    try {
         const newAccount = new Account({
             username: username,
             password: password,
@@ -110,13 +109,12 @@ module.exports.signInGoogle = async function(req, res, next)
             token: token,
             savedAccount: savedAccount
         });
-    } catch(error){
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
     }
 };
 
-module.exports.signInFacebook = async function(req, res, next)
-{
+module.exports.signInFacebook = async function (req, res, next) {
     const username = req.body.username;
     const fullname = req.body.fullname;
     const email = req.body.email;
@@ -126,15 +124,15 @@ module.exports.signInFacebook = async function(req, res, next)
     const permission = parseInt(req.body.permission);
 
     //TODO: xác thực token
-    
+
     // check account is existed ?
-    try{
-        const f_account = await Account.findOne({'username': username }).exec();
-        if(f_account){  // account existed, check password
-            const account = await Account.findOne({ "username": username, "password": password, "permission": permission}).exec();
-            if(!account){
-                res.status(StatusResponseConfig.Error).send({message: "Wrong login information!"});
-            }else{ // Login successfully
+    try {
+        const f_account = await Account.findOne({ 'username': username }).exec();
+        if (f_account) {  // account existed, check password
+            const account = await Account.findOne({ "username": username, "password": password, "permission": permission }).exec();
+            if (!account) {
+                res.status(StatusResponseConfig.Error).send({ message: "Wrong login information!" });
+            } else { // Login successfully
                 var payload = { userID: account._id };
                 var token = jwt.sign(payload, jwtCfg.secret);
                 res.status(StatusResponseConfig.Ok).json({
@@ -144,13 +142,13 @@ module.exports.signInFacebook = async function(req, res, next)
             }
             return;
         }
-    } catch(error){
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
         return;
     }
 
     // create new account
-    try{
+    try {
         const newAccount = new Account({
             username: username,
             password: password,
@@ -162,15 +160,15 @@ module.exports.signInFacebook = async function(req, res, next)
         const savedAccount = await newAccount.save();
         var payload = { userID: savedAccount._id };
         var token = jwt.sign(payload, jwtCfg.secret);
-         //cập nhật danh sách người dùng đang online
-         realTimeActions.updateOnlineUserList(savedAccount, socketID);
+        //cập nhật danh sách người dùng đang online
+        realTimeActions.updateOnlineUserList(savedAccount, socketID);
 
         res.status(StatusResponseConfig.Ok).json({
             token: token,
             savedAccount: savedAccount
         });
-    } catch(error){
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
     }
 };
 
@@ -182,8 +180,7 @@ module.exports.signInFacebook = async function(req, res, next)
     - Email
     - Permission
  */
-module.exports.signUp = async function(req, res, next)
-{
+module.exports.signUp = async function (req, res, next) {
     const plaintextPassword = req.body.password;
     const password = bcrypt.hashSync(plaintextPassword, SALT_ROUNDS);
     // create new account
@@ -196,29 +193,29 @@ module.exports.signUp = async function(req, res, next)
     });
 
     // check account is existed ?
-    try{
-        const f_account = await Account.findOne({'username': req.body.username }).exec();
-        if(f_account){
-            res.status(StatusResponseConfig.Error).send({message: "Account is existed"});
+    try {
+        const f_account = await Account.findOne({ 'username': req.body.username }).exec();
+        if (f_account) {
+            res.status(StatusResponseConfig.Error).send({ message: "Account is existed" });
             return;
         }
-    } catch(error){
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
         return;
     }
 
     // create new account
-    try{
+    try {
         const savedAccount = await account.save();
         var payload = { userID: savedAccount._id };
         var token = jwt.sign(payload, jwtCfg.secret);
 
         res.status(StatusResponseConfig.Ok).send({
-            token: token, 
+            token: token,
             savedAccount: savedAccount
         });
-    } catch(error){
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
     }
 };
 
@@ -229,36 +226,37 @@ module.exports.signUp = async function(req, res, next)
     - Email
     (Version 1.0)
  */
-module.exports.updateProfile = async function(req, res, next)
-{
+module.exports.updateProfile = async function (req, res, next) {
     const id = req.body.userId;
     const fullname = req.body.fullname;
 
     try {
         const updatedProfile = await Account.updateOne(
-            {_id: id},
-            { $set: 
+            { _id: id },
+            {
+                $set:
                 {
                     fullname: fullname
                 }
             }
         );
         res.status(StatusResponseConfig.Ok).send(updatedProfile);
-    }catch(error) {
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
     }
 };
 
 
-module.exports.getProfile = async function(req, res, next)
-{
+module.exports.getProfile = async function (req, res, next) {
     const id = req.query.userId;
 
     try {
         const profile = await Account.findById(id);
-        res.status(StatusResponseConfig.Ok).send(profile);
-    }catch(error) {
-        res.status(StatusResponseConfig.Error).send({message: error});
+        const winrate = await getWinrate(id);
+
+        res.status(StatusResponseConfig.Ok).send({profile: profile, winrate: winrate});
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
     }
 };
 
@@ -266,8 +264,7 @@ module.exports.getProfile = async function(req, res, next)
 /* 
     CHANGE PASSWORD
  */
-module.exports.changePassword = async function(req, res, next)
-{
+module.exports.changePassword = async function (req, res, next) {
     const id = req.body.userId;
     const plaintextPassword = req.body.password;
     //const password = bcrypt.hashSync(plaintextPassword, SALT_ROUNDS);
@@ -281,22 +278,23 @@ module.exports.changePassword = async function(req, res, next)
     // console.log(account.password);
     if(!bcrypt.compareSync(plaintextPassword, account.password)){
         console.log("wrong password");
-        res.status(StatusResponseConfig.Error).send({message: "Password is wrong"});
+        res.status(StatusResponseConfig.Error).send({ message: "Password is wrong" });
         return;
     }
 
     try {
         const changedPassword = await Account.updateOne(
-            {_id: id},
-            { $set: 
+            { _id: id },
+            {
+                $set:
                 {
                     password: newPassword
                 }
             }
         );
         res.status(StatusResponseConfig.Ok).send(changedPassword);
-    }catch(error) {
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
     }
 };
 
@@ -307,27 +305,26 @@ function validateEmail(email) {
 // user bấm send verify email 
 // => Gọi api => api validate email và gửi email chứa link nhúng token 
 // => click vào link dẫn đến trang confirm ở FE => gọi api đã xác thực email 
-module.exports.sendVerifyEmail = async function(req, res, next)
-{
+module.exports.sendVerifyEmail = async function (req, res, next) {
     const id = req.body.userId;
     const jwtToken = req.body.jwtToken;
 
     try {
-        const account = await Account.findOne({ "_id": id}).exec();
-        if(!account){
-            res.status(StatusResponseConfig.Error).send({message: "Account is not exist!"});
+        const account = await Account.findOne({ "_id": id }).exec();
+        if (!account) {
+            res.status(StatusResponseConfig.Error).send({ message: "Account is not exist!" });
         }
         else if (!validateEmail(account.email)) {
-            res.status(StatusResponseConfig.Error).send({message: "Invalid email address"});
+            res.status(StatusResponseConfig.Error).send({ message: "Invalid email address" });
         }
         else if (account.accountStatus === ACCfg.ACCOUNT_STATUS_VERIFIED_ACTIVE || account.accountStatus === ACCfg.ACCOUNT_STATUS_VERIFIED_BLOCKED) {
-            res.status(StatusResponseConfig.Error).send({message: "Account had already been verified"});
+            res.status(StatusResponseConfig.Error).send({ message: "Account had already been verified" });
         }
-        else{// send email
+        else {// send email
             const email = account.email;
             const userID = id;
             const token = jwtToken;
-///////////////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////////////
             const secret = await jwt.sign(
                 {
                     userID,
@@ -335,7 +332,7 @@ module.exports.sendVerifyEmail = async function(req, res, next)
                 },
                 jwtCfg.secret,
                 {
-                expiresIn: '900000',
+                    expiresIn: '900000',
                 }
             );
             try {
@@ -347,32 +344,31 @@ module.exports.sendVerifyEmail = async function(req, res, next)
                 res.status(StatusResponseConfig.Ok);
             }
             catch (e) {
-                res.status(StatusResponseConfig.Error).send({message: "Cannot send email to verify"});
+                res.status(StatusResponseConfig.Error).send({ message: "Cannot send email to verify" });
             }
-//////////////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////////////
         }
-    }catch(error) {
-        console.log({error});
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        console.log({ error });
+        res.status(StatusResponseConfig.Error).send({ message: error });
     }
 };
 
 
-module.exports.verifiedEmail = async function(req, res, next)
-{
+module.exports.verifiedEmail = async function (req, res, next) {
     const id = req.body.userId;
     const decodekey = req.body.decodekey;
 
     try {
         jwt.verify(decodekey, jwtCfg.secret, (err, decoded) => {
             if (err) {
-                res.status(StatusResponseConfig.Error).send({message: "Cannot verify email"});
+                res.status(StatusResponseConfig.Error).send({ message: "Cannot verify email" });
             }
             const uID1 = id;
             const uID2 = decoded.userID;
             jwt.verify(decoded.token, jwtCfg.secret, async (err2, decodedToken) => {
                 if (err2) {
-                    res.status(StatusResponseConfig.Error).send({message: "Cannot verify email"});
+                    res.status(StatusResponseConfig.Error).send({ message: "Cannot verify email" });
                 }
                 const uID3 = decodedToken.userID;
                 if (uID1 === uID2 && uID2 === uID3) { //really exactly
@@ -382,71 +378,72 @@ module.exports.verifiedEmail = async function(req, res, next)
                     let newAccountStatus = ((profile.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_ACTIVE) ? ACCfg.ACCOUNT_STATUS_VERIFIED_ACTIVE : (profile.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_BLOCKED ? ACCfg.ACCOUNT_STATUS_VERIFIED_BLOCKED : profile.accountStatus));
                     try {
                         const updatedStatusAccount = await Account.updateOne(
-                            {_id: uID1},
-                            { $set: 
+                            { _id: uID1 },
+                            {
+                                $set:
                                 {
                                     accountStatus: newAccountStatus,
                                 }
                             }
                         );
                         res.status(StatusResponseConfig.Ok).send("Successful");
-                    } catch(error) {
-                        res.status(StatusResponseConfig.Error).send({message: error});
+                    } catch (error) {
+                        res.status(StatusResponseConfig.Error).send({ message: error });
                     }
                 }
             });
         });
-    }catch(error) {
-        console.log({error});
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        console.log({ error });
+        res.status(StatusResponseConfig.Error).send({ message: error });
     }
 };
 
 function makeRandomPassword(length) {
-    var result           = '';
-    var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+    var result = '';
+    var characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     var charactersLength = characters.length;
-    for ( var i = 0; i < length; i++ ) {
-       result += characters.charAt(Math.floor(Math.random() * charactersLength));
+    for (var i = 0; i < length; i++) {
+        result += characters.charAt(Math.floor(Math.random() * charactersLength));
     }
     return result;
- }
+}
 // Nhập username và email => api Validate thông tin, nếu đúng thì gửi email chứa random password, ko thì báo lỗi
-module.exports.sendResetPasswordEmail = async function(req, res, next)
-{
+module.exports.sendResetPasswordEmail = async function (req, res, next) {
     const username = req.body.username;
     const email = req.body.email;
 
     try {
-        const account = await Account.findOne({ "username": username}).exec();
-        if(!account){
-            res.status(StatusResponseConfig.Error).send({message: "Account is not exist!"});
+        const account = await Account.findOne({ "username": username }).exec();
+        if (!account) {
+            res.status(StatusResponseConfig.Error).send({ message: "Account is not exist!" });
         }
         else if (account.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_ACTIVE || account.accountStatus === ACCfg.ACCOUNT_STATUS_UNVERIFIED_BLOCKED) {
-            res.status(StatusResponseConfig.Error).send({message: "We're sorry but your account hasn't been verified to use this feature yet"});
+            res.status(StatusResponseConfig.Error).send({ message: "We're sorry but your account hasn't been verified to use this feature yet" });
         }
         else if (account.email !== email) {
-            res.status(StatusResponseConfig.Error).send({message: "Wrong authenticate email information"});
+            res.status(StatusResponseConfig.Error).send({ message: "Wrong authenticate email information" });
         }
-        else{// send email
+        else {// send email
             const userID = account._id;
             const newPassword = makeRandomPassword(8);
-            
+
             ////////// cập nhật password mới vào DB
             try {
                 const newHashedPassword = bcrypt.hashSync(newPassword, SALT_ROUNDS);
                 const changedPassword = await Account.updateOne(
-                    {_id: userID},
-                    { $set: 
+                    { _id: userID },
+                    {
+                        $set:
                         {
                             password: newHashedPassword
                         }
                     }
                 );
-            }catch(error) {
-                res.status(StatusResponseConfig.Error).send({message: error});
+            } catch (error) {
+                res.status(StatusResponseConfig.Error).send({ message: error });
             }
-///////////////////////////////////////////////////////////////////////////////////////
+            ///////////////////////////////////////////////////////////////////////////////////////
             try {
                 const mail = await EmailSender.sendResetPasswordMail({
                     receiverEmail: email,
@@ -456,12 +453,42 @@ module.exports.sendResetPasswordEmail = async function(req, res, next)
                 res.status(StatusResponseConfig.Ok);
             }
             catch (e) {
-                res.status(StatusResponseConfig.Error).send({message: "Cannot send email to reset password"});
+                res.status(StatusResponseConfig.Error).send({ message: "Cannot send email to reset password" });
             }
-//////////////////////////////////////////////////////////////////////////////////////////
+            //////////////////////////////////////////////////////////////////////////////////////////
         }
-    }catch(error) {
-        console.log({error});
-        res.status(StatusResponseConfig.Error).send({message: error});
+    } catch (error) {
+        console.log({ error });
+        res.status(StatusResponseConfig.Error).send({ message: error });
     }
 };
+
+const getWinrate = async function (userId) {
+    try {
+        const listGame_1 = await HistoryGameM.find({ 'owner': userId }).exec();
+        const listGame_2 = await HistoryGameM.find({ 'player': userId }).exec();
+        const countWin = 0;
+        const others = 0;
+
+        for (var i = 0; i < listGame_1.length; i++) {
+            if (listGame_1[i].result === 1)
+                countWin++;
+            else
+                others++;
+        }
+
+        for (var i = 0; i < listGame_2.length; i++) {
+            if (listGame_2[i].result === 2)
+                countWin++;
+            else
+                others++;
+        }
+
+        if (countWin + others === 0) return 0;
+        return countWin / (countWin + others);
+    }
+    catch (error){
+        console.log("[GetWinrate] - Error - " + JSON.stringify(error));
+        return 0;
+    }
+}
