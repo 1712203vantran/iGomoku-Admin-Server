@@ -18,6 +18,8 @@ const EVENT_NAMES = {
     JOIN_BOARD: "join-board",
     START_GAME: "start-game",
     RESPONSE_WINNER: 'response-winner',
+    RESPONSE_TIMMER: "response-time",
+    RESPONSE_TIME_OUT:"response-time-out",
     RESPONSE_NEW_BOARD: "new-board",
     MSG_FROM_CLIENT: "send-message",
     MSG_TO_CLIENT: "receive-message",

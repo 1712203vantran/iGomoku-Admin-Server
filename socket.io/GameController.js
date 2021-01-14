@@ -9,7 +9,7 @@ const HistoryGameM = require('../models/HistoryGame.M');
 const BoardMangager = require('./BoardMangager');
 
 const SIZE =20;
-const LIMIT_TIME = 10;
+const LIMIT_TIME = 15;
 class GameController
 {
     constructor(io,boardID, player1ID, player2ID) {
@@ -18,7 +18,7 @@ class GameController
         this.player2ID = player2ID;
         this.io = io;
         this.size = SIZE;
-        this.limitTime =LIMIT_TIME;
+        this.limitTime = LIMIT_TIME;
         this.player1socketID = ListOnlineUser.getSocketIDByuserID(player1ID);
         this.player2socketID = ListOnlineUser.getSocketIDByuserID(player2ID);
 
@@ -32,11 +32,11 @@ class GameController
     async handleMove(index){
         console.log(`Move ${index}`);
         //set Time clock
-        // clearInterval(this.stopWatch);
-        // clearInterval(this.updateWatch);
+        clearInterval(this.stopWatch);
+        clearInterval(this.updateWatch);
     
-        // this.stopWatch = null;
-        // this.updateWatch = null;
+        this.stopWatch = null;
+        this.updateWatch = null;
 
         this.board[index] = this.stepNumber % 2 === 0 ? "X" : "O";
         //const playerNextTurn = this.stepNumber % 2 === 0 ? this.player1ID : this.player2ID;
@@ -76,48 +76,20 @@ class GameController
                 return;
             }
         }
-
+        console.log(this.limitTime);
         this.io.to(this.boardID).emit(EVENT_NAMES.RESPONSE_CURRENT_PLAYER, {stepNumber: this.stepNumber +1});
       
-        //   const { gameover, winner } = this.checkWin(index);
+        this.io.to(this.boardID).emit(EVENT_NAMES.RESPONSE_TIMMER, { time: this.limitTime });
       
-        //   if (gameover) {
-        //     this.sendNotifyWin(winner);
-        //     return;
-        //   }
-      
-        //   this.orderTurn++;
-        //   this.time = this.limitTime;
-      
-        //   const playerNextTurn =
-        //     this.orderTurn % 2 === 0 ? this.playerX : this.playerO;
-      
-        //   this.io
-        //     .to(this.idRoom)
-        //     .emit(SOCKET_TAG.RESPONSE_TIMMER, { time: this.limitTime });
-      
-        //   this.io
-        //     .to(this.idRoom)
-        //     .emit(SOCKET_TAG.RESPONSE_PLAYER_NEXT_TURN, { player: playerNextTurn });
-      
-        //   this.timmerInterval = setInterval(
-        //     () => this.timeUp(),
-        //     this.limitTime * 1000
-        //   );
-        //   this.updateTimeInterval = setInterval(() => this.updateTimmer(), 1000);
+        this.stopWatch = setInterval(() => this.timeUp(),
+        LIMIT_TIME * 1000
+        );
+        this.updateWatch = setInterval(() => this.updateTimmer(), 1000);
         this.stepNumber++;
+        this.limitTime = LIMIT_TIME;
     }
 
     async startGame(){
-
-        // this.io
-        // .to(this.idRoom)
-        // .emit(SOCKET_TAG.RESPONSE_TIMMER, { time: this.limitTime });
-        // this.timmerInterval = setInterval(
-        // () => this.timeUp(),
-        // this.limitTime * 1000
-        // );
-        // this.updateTimeInterval = setInterval(() => this.updateTimmer(), 1000);
 
         console.log({owner: this.player1socketID,player: this.player2socketID, boardID: this.boardID})
         try {
@@ -137,6 +109,9 @@ class GameController
             player1.matches.push(this.boardID);
             player2.matches.push(this.boardID);
 
+            player1.markModified("matches");
+            player2.markModified("matches");
+
             await player1.save();
             await player2.save();
             player1
@@ -152,6 +127,12 @@ class GameController
             status: Board_Cfg.INGAME_STATUS,
         });
 
+        this.io.to(this.boardID).emit(EVENT_NAMES.RESPONSE_TIMMER, { time: this.limitTime });
+
+        this.stopWatch = setInterval(( ) => this.timeUp(),
+        LIMIT_TIME * 1000
+        );
+        this.updateWatch = setInterval(() => this.updateTimmer(), 1000);
 
         SocketManager.setSocketOn(this.player1socketID,
                 EVENT_NAMES.STEP_FROM_CLIENT,
@@ -165,20 +146,28 @@ class GameController
     }
 
     async sendDrawResult() {
-        // clearInterval(this.timmerInterval);
-        // clearInterval(this.updateTimeInterval);
+        console.log("DRAW");
+        clearInterval(this.stopWatch);
+        clearInterval(this.updateWatch);
     
-        // this.timmerInterval = null;
-        // this.updateTimmerInterval = null;
+        this.stopWatch = null;
+        this.updateWatch = null;
     
         this.io.to(this.boardID).emit(EVENT_NAMES.RESPONSE_WINNER, { winner: null });
-        //this.stopGame();
+        this.stopGame();
       }
 
     async sendWinResult(winningLine, winner)
     {
+        clearInterval(this.stopWatch);
+        clearInterval(this.updateWatch);
+    
+        this.stopWatch = null;
+        this.updateWatch = null;
+
         console.log("WINNER: ",winner);
         this.io.to(this.boardID).emit(EVENT_NAMES.RESPONSE_WINNER, { line: winningLine, winner: winner });
+        this.stopGame();
         try {
             const board = await BoardM.findByIdAndUpdate({_id: this.boardID},{
                 boardStatus: Board_Cfg.INRESULT_STATUS,
@@ -238,18 +227,76 @@ class GameController
         }
     }
 
-    // stopGame(){
-       
+    async timeUp() {
+        console.log("TIME OUT");
+        if (this.stopWatch && this.updateWatch) {
+          const winner = this.stepNumber % 2 !== 0 ? this.player1ID : this.player2ID;
+    
+          this.io.to(this.boardID).emit(EVENT_NAMES.RESPONSE_TIME_OUT, {
+            winner,
+          });
+    
+        clearInterval(this.stopWatch);
+        clearInterval(this.updateWatch);
+    
+        this.stopWatch = null;
+        this.updateWatch = null;
+          
+          try {
+            const board = await BoardM.findByIdAndUpdate({_id: this.boardID},{
+                boardStatus: Board_Cfg.INRESULT_STATUS,
+            });
 
-    //     SocketManager.removeSocketOn(
-    //         this.player1SocketID,
-    //         EVENT_NAMES.STEP_TO_CLIENT
-    //         );
-    //     SocketManager.removeSocketOn(
-    //         this.player2SocketID,
-    //         EVENT_NAMES.STEP_TO_CLIENT
-    //         )    
-    // }
+            const history = await HistoryGameM.findOneAndUpdate({boardID: this.boardID},{
+                winningLine: null,
+            });
+
+            const player1 = await AccountM.findOne({_id: this.player1ID});
+            const player2 = await AccountM.findOne({_id: this.player2ID});
+            
+            if (this.player1ID === winner)
+            {
+                player1.elo =  player1.elo + history.eloGot;
+                player2.elo = player2.elo - history.eloGot;
+                player1.winningGame.push(this.boardID);
+                player2.lostGame.push(this.boardID);
+            }
+            else{
+                player2.elo = player2.elo + history.eloGot;
+                player1.elo = player1.elo - history.eloGot;
+                player2.winningGame.push(this.boardID);
+                player1.lostGame.push(this.boardID);
+            }
+            console.log({player1, player2});
+            await player1.save();
+            await player2.save();
+        } catch (error) {
+            console.log(error);
+        }
+    
+        this.stopGame();
+     }
+    }
+    
+      updateTimmer() {
+        if (this.stopWatch && this.updateWatch) {
+          this.limitTime -= 1;
+          this.io
+            .to(this.boardID)
+            .emit(EVENT_NAMES.RESPONSE_TIMMER, { time: this.limitTime });
+        }
+      }
+
+    stopGame(){
+        SocketManager.removeSocketOn(
+            this.player1SocketID,
+            EVENT_NAMES.STEP_TO_CLIENT
+            );
+        SocketManager.removeSocketOn(
+            this.player2SocketID,
+            EVENT_NAMES.STEP_TO_CLIENT
+            );   
+    }
 }
 
 module.exports = GameController;
