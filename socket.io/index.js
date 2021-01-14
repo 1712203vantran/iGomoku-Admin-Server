@@ -7,6 +7,7 @@ const SocketManager = require('./SocketManager');
 const BoardManager = require('./BoardMangager');
 const JWTCfg = require('../config/JWT.Cfg');
 const BoardConstants = require('../config/Board.Cfg');
+const HistoryGameM = require('../models/HistoryGame.M');
 
 let io = null;
 
@@ -86,10 +87,14 @@ const configSocketIO = (server) =>{
             });
         })
         //nhận tin nhắn và gửi cho những người khác trong phòng
-        socket.on(EVENT_NAMES.MSG_FROM_CLIENT, (data)=>{
-            const dataRevice = JSON.parse(data);
-            //console.log(`[MESSAGE]: ${data}`);
-            socket.to(dataRevice.boardID).emit(EVENT_NAMES.MSG_TO_CLIENT, JSON.stringify(dataRevice));
+        socket.on(EVENT_NAMES.MSG_FROM_CLIENT,async ({boardID, message, talker})=>{
+            const history = await HistoryGameM.findOne({boardID: boardID});
+            history.messages.push({message, talker});
+            console.log(history.messages);
+            history.markModified("messages");
+            await history.save();
+
+            socket.to(boardID).emit(EVENT_NAMES.MSG_TO_CLIENT, {message, talker});
         });
 
         //nhận bước di chuyển và gửi cho những người khác trong phòng
