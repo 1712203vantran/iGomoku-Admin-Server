@@ -11,6 +11,7 @@ const EVENT_NAMES = {
     RESPONSE_RECONNECT: "reponse-reconnect",
     REQUEST_UPDATE_PLAYER_INFO: "request-update-user-info",
     RESPONSE_UPDATE_PLAYER_INFO: "response-update-user-info",
+    RESPONSE_CURRENT_PLAYER: 'response-current-player',
     RESPONSE_STATUS: "response-status",
     INVITE_JOIN_MATCH: "invite-player",
     ACCEPT_INVITE: "accept-invite",

@@ -60,24 +60,24 @@ const configSocketIO = (server) =>{
             }
         });
 
-        socket.on(EVENT_NAMES.JOIN_BOARD, ({boardID}) =>{
+        socket.on(EVENT_NAMES.JOIN_BOARD, ({boardID, userID}) =>{
             socket.join(boardID);
             console.log(`[${socket.id}]: join board ${boardID}`);
-            BoardManager.joinBoard(socket.id, boardID);
+            BoardManager.joinBoard(socket.id, boardID, userID);
         });
 
-        socket.on(EVENT_NAMES.START_GAME, ({boardID}) =>{
+        socket.on(EVENT_NAMES.START_GAME, ({boardID, userID}) =>{
             BoardManager.startGame(boardID);
             //console.log("Start game");
         });
 
-        socket.on(EVENT_NAMES.REQUEST_RECONNECT, ({ boardID }) => {
-            const board = BoardManager.getBoardByID(boardID);
+        // socket.on(EVENT_NAMES.REQUEST_RECONNECT, ({ boardID }) => {
+        //     const board = BoardManager.getBoardByID(boardID);
       
-            if (board) {
-                board.gameController.reConnect(socket.id);
-            }
-          });
+        //     if (board) {
+        //         board.gameController.reConnect(socket.id);
+        //     }
+        //   });
 
         socket.on(EVENT_NAMES.REQUEST_UPDATE_PLAYER_INFO, ({boardID,owner,player})=>{
             socket.to(boardID).emit(EVENT_NAMES.RESPONSE_UPDATE_PLAYER_INFO, {
@@ -149,7 +149,7 @@ const realTimeActions = {
         //ownerID
         const socketOwnerID = ListOnlineUser.getSocketIDByuserID(ownerID);
         const socketPlayerID = ListOnlineUser.getSocketIDByuserID(playerID);
-        console.log({socketOwnerID,socketPlayerID})
+        //console.log({socketOwnerID,socketPlayerID})
         if (socketOwnerID && socketPlayerID)
         {
             console.log(`[Board]: notify ${socketOwnerID} & ${socketPlayerID}`);

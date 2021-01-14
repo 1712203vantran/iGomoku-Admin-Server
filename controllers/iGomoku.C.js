@@ -18,8 +18,7 @@ const iGomokuCOntrollers = {
             return res.status(StatusConstant.Ok).send({
                 users: listOnlUsers,
                 boards: listBoardInProgress,
-            });
-            
+            });  
         }catch(error) {
             console.log(`[GetListBoard] - Error: ${error}`);
             return res.status(StatusConstant.Error).send({message: error});

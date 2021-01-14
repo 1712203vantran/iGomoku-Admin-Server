@@ -27,10 +27,12 @@ const SocketManager = {
     },
 
     setSocketOn(socketID, TAG, callback) {
+      console.log(socketList.length);    
         for (let i = 0; i < socketList.length; i++) {
           const { socket, listener } = socketList[i];
     
           if (socket.id === socketID) {
+            console.log("set socket ", socketID);
             for (let j = 0; j < listener.length; j++) {
               if (listener[j].TAG === TAG) return;
             }

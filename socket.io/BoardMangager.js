@@ -14,9 +14,9 @@ class BoardManager
         this.io = io;
     };
 
-    joinBoard(socketID, boardID){
+    joinBoard(socketID, boardID, userID){
         //if exist board (define by boardID)
-        const userID = ListOnlineUser.getUserIDBySocketID(socketID);
+        //const userID = ListOnlineUser.getUserIDBySocketID(socketID);
         for(let i =0; i< this.boardList.length;i++)
         {
             //const { player1SocketID, player2SocketID } = this.boardList[i];
@@ -24,7 +24,8 @@ class BoardManager
             {
                 if(this.boardList[i].gameController !== null)
                 {
-                    this.boardList[i].gameController.reConnect(socketID);
+                    console.log("reconnect");
+                    this.boardList[i].gameController.reConnect(socketID, userID);
                 }
 
                 if(this.boardList[i].player1SocketID !== socketID && this.boardList[i].player2SocketID === null)
@@ -41,6 +42,7 @@ class BoardManager
                 return;
             }
         };
+        console.log("owner create board", socketID);
         this.boardList.push({
             ownerID: userID,
             playerID: null,

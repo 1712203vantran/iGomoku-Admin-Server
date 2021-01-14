@@ -5,6 +5,7 @@ const SocketManager = require('./SocketManager');
 const ResultIdentification = require('../utils/ResultIdentification');
 const BoardM = require('../models/Board.M');
 const Board_Cfg = require('../config/Board.Cfg');
+const AccountM = require('../models/Account.M');
 
 const SIZE =20;
 const LIMIT_TIME = 10;
@@ -28,7 +29,7 @@ class GameController
     }
 
     async handleMove(index){
-        console.log("Move");
+        console.log(`Move ${index}`);
         //set Time clock
         // clearInterval(this.stopWatch);
         // clearInterval(this.updateWatch);
@@ -40,10 +41,12 @@ class GameController
         //const playerNextTurn = this.stepNumber % 2 === 0 ? this.player1ID : this.player2ID;
         //emit to another socket 
         this.io.to(this.boardID).emit(EVENT_NAMES.STEP_TO_CLIENT, {
+            board: this.board,  
             index,
             stepNumber: this.stepNumber +1,
             playerInfo: this.board[index],
           });
+          this.io.to(this.boardID).emit(EVENT_NAMES.RESPONSE_CURRENT_PLAYER, {stepNumber: this.stepNumber +1});
           //save history
         const result = ResultIdentification.calculateWinner(this.board,index,20,5);
         if (result)
@@ -96,6 +99,7 @@ class GameController
         // );
         // this.updateTimeInterval = setInterval(() => this.updateTimmer(), 1000);
 
+        console.log({owner: this.player1socketID,player: this.player2socketID, boardID: this.boardID})
         try {
             const result = BoardM.findByIdAndUpdate({_id: this.boardID},
                 {
@@ -144,9 +148,10 @@ class GameController
     //     );
     // };
 
-    reConnect(socketID)
+    reConnect(socketID, userID)
     {
         console.log(`${socketID} RECONNECT BOARD`);
+
         this.io.to(socketID).emit(EVENT_NAMES.RESPONSE_RECONNECT, {
             board: this.board,
             //playerX: this.playerX,
@@ -157,7 +162,8 @@ class GameController
             status: Board_Cfg.INGAME_STATUS,
         });
 
-        const userID = ListOnlineUser.getUserIDBySocketID(socketID);
+        // const userID = //ListOnlineUser.getUserIDBySocketID(socketID);
+        //     AccountM.findById({_id: this.player1ID}).select({})
         console.log(userID);
         if (userID === this.player1ID || userID === this.player2ID) {
 

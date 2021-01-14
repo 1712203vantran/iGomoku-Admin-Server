@@ -516,7 +516,7 @@ module.exports.getBXH = async function (req, res, next) {
         }
 
         res.status(StatusResponseConfig.Ok).send(users);
-        console.log(`[GetBXH] - Success: ${users}`);
+        console.log(`[GetBXH] - Success: ${users.length}`);
     }
     catch (error) {
         res.status(StatusResponseConfig.Error).send({ message: error });
