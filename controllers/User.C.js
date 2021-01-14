@@ -11,6 +11,7 @@ const Utils = require('../utils/Utils');
 const StatusResponseConfig = require('../config/StatusResponseConfig');
 const AccountConstants = require('../config/Account.Cfg');
 const Board = require('../models/Board.M');
+const HistoryGameM = require('../models/HistoryGame.M');
 
 /*
     USER SEND MAKE FRIEND REQUEST
@@ -352,6 +353,13 @@ module.exports.getListFriend = async function (req, res, next) {
             listFriend.push(others);
         }
 
+        
+        for(var k = 0; k < listFriend.length; k++){
+            const userId = listFriend[k]['_id'];
+            listFriend[k]["winrate"] = await getWinrate(userId);
+        }
+
+
         res.status(StatusResponseConfig.Ok).send(listFriend);
         console.log(`[GetListFriend] - Success: friendd ${listFriend.length}`);
     } catch (error) {
@@ -483,8 +491,6 @@ module.exports.getHistory = async function (req, res, next) {
         result.boardName = (await Board.findById(history.boardID))['boardName'];
         result.winningLine = history.winningLine;
 
-        console.log("result ne: " + JSON.stringify(result));
-
         res.status(StatusResponseConfig.Ok).send(result);
         console.log(`[GetHistory] - Success: ${result}`);
     } catch (error) {
@@ -492,3 +498,53 @@ module.exports.getHistory = async function (req, res, next) {
         console.log(`[GetHistory] - Error: ${error}`);
     }
 };
+
+/*
+    GET BXH / TOP 10
+    - History Id: string
+ */
+module.exports.getBXH = async function (req, res, next) {
+    try {
+        var users = await Account.find({ permission: AccountConstants.PERMISSION_USER })
+            .sort({ 'elo': -1 })
+            .limit(15)
+            .exec();
+
+        for(var k = 0; k < users.length; k++){
+            const userId = users[k]['_id'];
+            users[k]["winrate"] = await getWinrate(userId);
+        }
+
+        res.status(StatusResponseConfig.Ok).send(users);
+        console.log(`[GetBXH] - Success: ${users}`);
+    }
+    catch (error) {
+        res.status(StatusResponseConfig.Error).send({ message: error });
+        console.log(`[GetBXH] - Error: ${error}`);
+    }
+};
+
+
+const getWinrate = async function (userId) {
+    const listGame_1 = await HistoryGameM.find({ 'owner': userId }).exec();
+    const listGame_2 = await HistoryGameM.find({ 'player': userId }).exec();
+    const countWin = 0;
+    const others = 0;
+
+    for (var i = 0; i < listGame_1.length; i++) {
+        if (listGame_1[i].result === 1)
+            countWin++;
+        else
+            others++;
+    }
+
+    for (var i = 0; i < listGame_2.length; i++) {
+        if (listGame_2[i].result === 2)
+            countWin++;
+        else
+            others++;
+    }
+
+    if(countWin + others === 0) return 0;
+    return countWin / (countWin + others);
+}
