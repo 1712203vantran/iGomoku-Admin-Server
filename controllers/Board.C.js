@@ -44,8 +44,6 @@ module.exports.createBoard = async function (req, res, next) {
         })
 
         const createdHistory = await history.save();
-        console.log(createdHistory);
-
         //realtime invite for player
         realTimeActions.updateBoardActiveList(socketID, {
             owner: {
@@ -68,7 +66,6 @@ module.exports.createBoard = async function (req, res, next) {
                 _id: player._id,
             });
         }
-        console.log({role: savedBoard.role});
         return res.status(StatusConstant.Ok).send(savedBoard);
     } catch (error) {
         res.status(StatusConstant.Error).send({ message: error });
@@ -152,19 +149,19 @@ module.exports.playerJoinBoard = async function (req, res, next) {
                     { $set: 
                         {
                             player: playerID,
-                            boardStatus: boardInfo.isPrivate? BoardConstants.WATING_STATUS: BoardConstants.INGAME_STATUS,
+                            //boardStatus: boardInfo.isPrivate? BoardConstants.WATING_STATUS: BoardConstants.INGAME_STATUS,
                         }
                     },
                     {new: true},
                 );
                 joinBoard.role = BoardConstants.PLAYER_ROLE;
                 //update historyinfo
-                await History.findOneAndUpdate({boardID: boardID},
-                    {
-                        playerID: playerID
-                    },
-                    {new: true},
-                    );
+                // await History.findOneAndUpdate({boardID: boardID},
+                //     {
+                //         playerID: playerID
+                //     },
+                //     {new: true},
+                //     );
                 //create history game whe use join board 
                 console.log(`[PlayerJoinBoard] - BoardId ${boardID} - PlayerId ${playerID}`);
                 realTimeActions.notifyUser(boardID, playerID, boardInfo.owner.toString());

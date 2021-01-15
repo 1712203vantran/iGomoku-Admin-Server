@@ -80,9 +80,12 @@ module.exports.getListHistory = async function (req, res, next) {
         for (var i = 0; i < listHistory_1.length; i++) {
             var element = {};
             element._id = listHistory_1[i]._id;
-            element.me_fullname = (await Account.findById(listHistory_1[i].ownerID))["fullname"];
+            const me = await Account.findById(listHistory_1[i].ownerID);
+            const enemy = await Account.findById(listHistory_1[i].playerID);
+            element.me_fullname = me ? me.fullname : "Thế Anh";
+            element.enemy_fullname = enemy ? enemy.fullname : "Thế Anh";
             element.me_id = listHistory_1[i].ownerID;
-            element.enemy_fullname = (await Account.findById(listHistory_1[i].playerID))["fullname"];
+            //element.enemy_fullname = (await Account.findById(listHistory_1[i].playerID))["fullname"];
             element.enemy_id = listHistory_1[i].playerID;
             element.result = listHistory_1[i].result === 1 ? 1 : 0;
             element.chats = listHistory_1[i].messages;

@@ -59,12 +59,12 @@ const AccountSchema = mongoose.Schema({
     }],
     winningGame: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "HistoryGame",
+        ref: "Board",
         default: []
     }],
     lostGame: [{
         type: mongoose.Schema.Types.ObjectId,
-        ref: "HistoryGame",
+        ref: "Board",
         default: []
     }],
     autoMatch: {

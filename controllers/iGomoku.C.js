@@ -13,13 +13,12 @@ const iGomokuCOntrollers = {
             .select("boardName boardStatus isPrivate password watchers ")
             .exec();
             const listBoardInProgress = listBoard.filter(board=>
-                (board.boardStatus !== BoardConstants.INRESULT_STATUS || board.boardStatus !== BoardConstants.CREATE_STATUS));
+                (board.boardStatus !== BoardConstants.INRESULT_STATUS));
             console.log(`[Online User]:${listOnlUsers.length} [Board]: ${listBoardInProgress.length}`)
             return res.status(StatusConstant.Ok).send({
                 users: listOnlUsers,
                 boards: listBoardInProgress,
-            });
-            
+            });  
         }catch(error) {
             console.log(`[GetListBoard] - Error: ${error}`);
             return res.status(StatusConstant.Error).send({message: error});
