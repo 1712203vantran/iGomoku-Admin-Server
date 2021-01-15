@@ -1,8 +1,7 @@
 const mongoose = require('mongoose');
-const URL = require('../config/URL.config');
-console.log(URL.MONGO_DB);
+
 const mongoDBConnection =() =>{
-        mongoose.connect(URL.MONGO_DB,{
+        mongoose.connect(process.env.DB_CONNECTION,{
         useNewUrlParser: true, 
         useUnifiedTopology: true,
         useCreateIndex: true,
@@ -12,6 +11,6 @@ const mongoDBConnection =() =>{
     .catch(error=>{
         console.log(error);
     });
-};
-
+}
+   
 module.exports = mongoDBConnection;
